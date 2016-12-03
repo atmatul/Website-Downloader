@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/fetcher.dir/main.c.o"
+  "CMakeFiles/fetcher.dir/lib/slre/slre.c.o"
   "fetcher.pdb"
   "fetcher"
 )

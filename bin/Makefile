@@ -123,6 +123,33 @@ fetcher/fast:
 	$(MAKE) -f CMakeFiles/fetcher.dir/build.make CMakeFiles/fetcher.dir/build
 .PHONY : fetcher/fast
 
+lib/slre/slre.o: lib/slre/slre.c.o
+
+.PHONY : lib/slre/slre.o
+
+# target to build an object file
+lib/slre/slre.c.o:
+	$(MAKE) -f CMakeFiles/fetcher.dir/build.make CMakeFiles/fetcher.dir/lib/slre/slre.c.o
+.PHONY : lib/slre/slre.c.o
+
+lib/slre/slre.i: lib/slre/slre.c.i
+
+.PHONY : lib/slre/slre.i
+
+# target to preprocess a source file
+lib/slre/slre.c.i:
+	$(MAKE) -f CMakeFiles/fetcher.dir/build.make CMakeFiles/fetcher.dir/lib/slre/slre.c.i
+.PHONY : lib/slre/slre.c.i
+
+lib/slre/slre.s: lib/slre/slre.c.s
+
+.PHONY : lib/slre/slre.s
+
+# target to generate assembly for a file
+lib/slre/slre.c.s:
+	$(MAKE) -f CMakeFiles/fetcher.dir/build.make CMakeFiles/fetcher.dir/lib/slre/slre.c.s
+.PHONY : lib/slre/slre.c.s
+
 main.o: main.c.o
 
 .PHONY : main.o
@@ -159,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... fetcher"
+	@echo "... lib/slre/slre.o"
+	@echo "... lib/slre/slre.i"
+	@echo "... lib/slre/slre.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

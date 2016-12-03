@@ -6,7 +6,21 @@
 
 #IncludeRegexTransform: 
 
+/Users/kunal/Desktop/NP-Project/website-downloader/lib/slre/slre.c
+stdio.h
+-
+ctype.h
+-
+string.h
+-
+slre.h
+/Users/kunal/Desktop/NP-Project/website-downloader/lib/slre/slre.h
+
+/Users/kunal/Desktop/NP-Project/website-downloader/lib/slre/slre.h
+
 /Users/kunal/Desktop/NP-Project/website-downloader/main.c
 stdio.h
 -
+lib/slre/slre.h
+/Users/kunal/Desktop/NP-Project/website-downloader/lib/slre/slre.h
 

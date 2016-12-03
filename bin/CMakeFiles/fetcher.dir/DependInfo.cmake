@@ -4,6 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
+  "/Users/kunal/Desktop/NP-Project/website-downloader/lib/slre/slre.c" "/Users/kunal/Desktop/NP-Project/website-downloader/bin/CMakeFiles/fetcher.dir/lib/slre/slre.c.o"
   "/Users/kunal/Desktop/NP-Project/website-downloader/main.c" "/Users/kunal/Desktop/NP-Project/website-downloader/bin/CMakeFiles/fetcher.dir/main.c.o"
   )
 set(CMAKE_C_COMPILER_ID "AppleClang")
