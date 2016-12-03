@@ -4,6 +4,7 @@
 #include "includes.h"
 #include "slre/slre.h"
 #include "list.h"
+#include "database.h"
 
 #define NOT_VALID_URL -2
 #define NOT_LOCAL_URL -1
@@ -31,8 +32,19 @@ int is_html(const char* header) {
     }
 }
 
-void link_extractor(node** lhead, const char* markup) {
-    static const char *regex = "src|href=\"((https?:/)?[/]?[^\\s/'\"<>]+[:]?[0-9]*/?[^\\s'\"<>]+[^\\s'\"<>]*)\"";
+int validate_link(char** link) {
+    if ((strchr(*link, '(') != NULL) || (strchr(*link, ')') != NULL)) {
+        return EXIT_FAILURE;
+    }
+    char *hash_location;
+    if ((hash_location = strchr(*link, '#')) != NULL) {
+        *hash_location = '\0';
+    }
+    return EXIT_SUCCESS;
+}
+
+void link_extractor(node** lhead, MYSQL* connection, const char* markup) {
+    static const char *regex = "src|href=\"((https?:/)?[/]?[^#\\s/'\"<>]+[:]?[0-9]*/?[^\\s'\"<>\\.]+\\.[^\\s'\"<>]*)\"";
     struct slre_cap caps[4];
     int i, j = 0, str_len = strlen(markup);
     char current_dir[BUFSIZ];
@@ -46,11 +58,19 @@ void link_extractor(node** lhead, const char* markup) {
         subpat[caps[0].len] = '\0';
         if (is_local_link(subpat) == 0) {
             if (subpat[0] != '/') {
-                char sanitized_link[BUFSIZ];
+                char *sanitized_link;
+                sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
                 sprintf(sanitized_link, "%s%s", current_dir, subpat);
-                append(lhead, sanitized_link);
+                if (!validate_link(&sanitized_link)) {
+                    append(lhead, sanitized_link);
+                    db_insert_link(connection, sanitized_link);
+                }
+                free(sanitized_link);
             } else {
-                append(lhead, subpat);
+                if (!validate_link(&subpat)) {
+                    append(lhead, subpat);
+                    db_insert_link(connection, subpat);
+                }
             }
         }
         free(subpat);

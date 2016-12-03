@@ -19,7 +19,7 @@ set(SOURCE_FILES main.c
         lib/includes.h
         lib/downloader.h
         lib/file_saver.h
-        lib/list.h lib/util.h)
+        lib/list.h lib/util.h lib/database.h)
 
 add_executable(fetcher ${SOURCE_FILES})
 target_include_directories(fetcher PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
