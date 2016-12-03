@@ -7,6 +7,7 @@ set(SOURCE_FILES main.c
         lib/slre/slre.c
         lib/extractor.h
         lib/includes.h
-        lib/downloader.h)
+        lib/downloader.h
+        lib/file_saver.h)
 
 add_executable(fetcher ${SOURCE_FILES})

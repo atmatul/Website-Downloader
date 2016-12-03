@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define MAX_PATH_LENGTH 1000
+
 void notify_error(const char* msg) {
     printf("ERROR: %s\n", msg);
     exit(EXIT_FAILURE);
