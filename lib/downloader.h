@@ -40,7 +40,6 @@ char *build_get_query(char *host, char *page) {
     char *tpl = "GET /%s HTTP/1.0\nHost: %s\nUser-Agent: %s\n\n";
     if (getpage[0] == '/') {
         getpage = getpage + 1;
-        printf("Removing leading \"/\", converting %s to %s\n", page, getpage);
     }
     // -5 is to consider the %s %s %s in tpl and the ending \0
     query = (char *) malloc(strlen(host) + strlen(getpage) + strlen(USERAGENT) + strlen(tpl) - 5);
