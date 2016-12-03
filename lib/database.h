@@ -24,7 +24,13 @@ int db_connect(MYSQL *connection) {
 
 int db_insert_link(MYSQL *connection, const char *url) {
     char query[BUFSIZ];
-    sprintf(query, "INSERT INTO Links (link) VALUES('%s');", url);
+
+    sprintf(query, "INSERT INTO Links (link) "
+            "SELECT * FROM (SELECT '%s') AS tmp"
+            "    WHERE NOT EXISTS ("
+            "            SELECT link FROM Links WHERE link = '%s'"
+            "    ) LIMIT 1;", url, url);
+
     if (mysql_query(connection, query)) {
         db_debug(connection);
         notify_error("Unable to insert into database.\n");
