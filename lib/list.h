@@ -3,15 +3,15 @@
 
 #include "includes.h"
 
-void append(node* lhead, const char* url) {
-    node* right = lhead;
+void append(node** lhead, const char* url) {
+    node* right = *lhead;
     node* temp = (node *) malloc(sizeof(node));
 
     strcpy(temp->page, url);
     temp->next = NULL;
 
     if (right == NULL) {
-        lhead = temp;
+        *lhead = temp;
     } else {
         while (right->next != NULL) {
             right = right->next;

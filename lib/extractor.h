@@ -10,7 +10,7 @@
 
 int is_local_link(const char* link_url) {
     if (strlen(link_url) > 0) {
-        if (link_url[0] != '/')
+        if (link_url[0] != '/' && link_url[0] != 'h' && link_url[0] != 'H')
             return NOT_LOCAL_URL;
         else
             return EXIT_SUCCESS;
@@ -31,13 +31,13 @@ int is_html(const char* header) {
     }
 }
 
-void link_extractor(node* lhead, const char* markup) {
-    static const char *regex = "\"((https?:/)?/[^\\s/'\"<>]+[:]?[0-9]*/?[^\\s'\"<>]*)\"";
-    struct slre_cap caps[3];
+void link_extractor(node** lhead, const char* markup) {
+    static const char *regex = "src|href=\"((https?:/)?[/]?[^\\s/'\"<>]+[:]?[0-9]*/?[^\\s'\"<>]+[^\\s'\"<>]*)\"";
+    struct slre_cap caps[4];
     int i, j = 0, str_len = strlen(markup);
 
     while (j < str_len &&
-           (i = slre_match(regex, markup + j, str_len - j, caps, 3, SLRE_IGNORE_CASE)) > 0) {
+           (i = slre_match(regex, markup + j, str_len - j, caps, 4, SLRE_IGNORE_CASE)) > 0) {
         // extract subpattern
         char *subpat;
         subpat = (char*) malloc((caps[0].len + 1) * sizeof(char));

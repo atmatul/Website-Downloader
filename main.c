@@ -17,7 +17,7 @@ int main() {
         fetch_url(host, head->page, &header, &content);
         if (strlen(header) > 0) {
             if (!is_html(header)) {
-                link_extractor(head, content);
+                link_extractor(&head, content);
             }
             char filepath[BUFSIZ];
             char *ext_name;
@@ -31,14 +31,21 @@ int main() {
                 sprintf(filepath, "%s%s", filepath, ".html");
             }
             char cmd_mkdir[BUFSIZ];
-            sprintf(cmd_mkdir, "mkdir %.*s", strrchr(filepath, '/') - filepath, filepath);
-            if (!system(cmd_mkdir))
+            char dirpath[BUFSIZ];
+            sprintf(dirpath, "%.*s", (int)(strrchr(filepath, '/') - filepath), filepath);
+            sprintf(cmd_mkdir, "[ -d %s ] || mkdir -p %s", dirpath, dirpath);
+            if (!system(cmd_mkdir)){
                 file_write(filepath, content);
-            else
+                printf("Wrote: %s\n", filepath);
+            } else
                 notify_error("Unable to write to file.");
             free(ext_name);
         }
-        progress(&head);
+        if (head->next != NULL) {
+            node* temp = head;
+            head = head->next;
+            free(temp);
+        }
         free(content);
         free(header);
     } while(head != NULL);
