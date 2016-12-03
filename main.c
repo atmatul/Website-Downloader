@@ -3,6 +3,9 @@
 #include "lib/downloader.h"
 
 int main() {
-    fetch_url("Blah");
+    char *content;
+
+    fetch_url("blah", &content);
+    link_extractor(content);
     return 0;
 }

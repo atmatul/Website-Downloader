@@ -50,7 +50,7 @@ char *build_get_query(char *host, char *page) {
     return query;
 }
 
-int fetch_url(const char *url) {
+int fetch_url(const char *url, char **content) {
     struct sockaddr_in *server_addr;
     int socket_id;
     int result_id;
@@ -97,13 +97,12 @@ int fetch_url(const char *url) {
     int htmlstart = 0;
     int pagesize = 0;
     char *htmlcontent;
-    char *content;
     while ((result_id = recv(socket_id, buffer, BUFSIZ, 0)) > 0) {
         pagesize += result_id;
         if (htmlstart == 0) {
-            content = (char *) malloc(pagesize * sizeof(char));
+            *content = (char *) malloc(pagesize * sizeof(char));
         } else {
-            content = (char *) realloc(content, pagesize * sizeof(char));
+            *content = (char *) realloc(*content, pagesize * sizeof(char));
         }
         if (htmlstart == 0) {
             htmlcontent = strstr(buffer, "\r\n\r\n");
@@ -114,19 +113,18 @@ int fetch_url(const char *url) {
         } else {
             htmlcontent = buffer;
         }
-        strcat(content, htmlcontent);
+        strcat(*content, htmlcontent);
         memset(buffer, 0, result_id);
     }
     if (result_id < 0) {
         notify_error("Error receiving data");
     }
 
-    printf("Content: %s", content);
     free(http_header);
     free(server_addr);
     free(ip);
     close(socket_id);
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 #endif //WEBSITE_DOWNLOADER_DOWNLOADER_H
