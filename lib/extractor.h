@@ -1,9 +1,7 @@
 #ifndef WEBSITE_DOWNLOADER_EXTRACTOR_H
 #define WEBSITE_DOWNLOADER_EXTRACTOR_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "includes.h"
 #include "slre/slre.h"
 
 #define NOT_VALID_URL -2

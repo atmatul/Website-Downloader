@@ -4,6 +4,8 @@ project(website_downloader)
 set(CMAKE_CXX_STANDARD 11)
 set(SOURCE_FILES main.c
         lib/slre/slre.h
-        lib/slre/slre.c lib/extractor.h)
+        lib/slre/slre.c
+        lib/extractor.h
+        lib/includes.h)
 
 add_executable(fetcher ${SOURCE_FILES})

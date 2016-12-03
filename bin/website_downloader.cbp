@@ -83,6 +83,9 @@
 		<Unit filename="/Users/kunal/Desktop/NP-Project/website-downloader/lib/extractor.h">
 			<Option target="fetcher"/>
 		</Unit>
+		<Unit filename="/Users/kunal/Desktop/NP-Project/website-downloader/lib/includes.h">
+			<Option target="fetcher"/>
+		</Unit>
 		<Unit filename="/Users/kunal/Desktop/NP-Project/website-downloader/lib/slre/slre.c">
 			<Option target="fetcher"/>
 		</Unit>
