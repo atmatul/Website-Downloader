@@ -7,7 +7,7 @@ int main() {
                     "<html>\n"
                     "<head>\n"
                     "  <title>This is index page</title>\n"
-                    "  <link rel=\"stylesheet\" href=\"/styles/base.css\"/>\n"
+                    "  <link rel=\"stylesheet\" href=\"http://w.c.c/styles/base.css\"/>\n"
                     "</head>\n"
                     "<body>\n"
                     "  <h1>This is index page</h1>\n"
