@@ -30,7 +30,12 @@ int main() {
             if (match_extension(filepath, &ext_name) == -1) {
                 sprintf(filepath, "%s%s", filepath, ".html");
             }
-            file_write(filepath, content);
+            char cmd_mkdir[BUFSIZ];
+            sprintf(cmd_mkdir, "mkdir %.*s", strrchr(filepath, '/') - filepath, filepath);
+            if (!system(cmd_mkdir))
+                file_write(filepath, content);
+            else
+                notify_error("Unable to write to file.");
             free(ext_name);
         }
         progress(&head);

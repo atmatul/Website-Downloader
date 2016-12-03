@@ -51,4 +51,6 @@ void link_extractor(node* lhead, const char* markup) {
     }
 }
 
+
+
 #endif //WEBSITE_DOWNLOADER_EXTRACTOR_H
