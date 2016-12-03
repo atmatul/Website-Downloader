@@ -50,7 +50,7 @@ char *build_get_query(char *host, char *page) {
     return query;
 }
 
-int fetch_url(const char *url, char **content) {
+int fetch_url(const char *url, char **header, char **content) {
     struct sockaddr_in *server_addr;
     int socket_id;
     int result_id;
@@ -109,6 +109,10 @@ int fetch_url(const char *url, char **content) {
             if (htmlcontent != NULL) {
                 htmlstart = 1;
                 htmlcontent += 4;
+                int header_size = strlen(buffer) - strlen(htmlcontent);
+                *header = (char *) malloc((header_size + 1) * sizeof(char));
+                memcpy(*header, buffer, header_size);
+                *(*header + header_size) = '\0';
             }
         } else {
             htmlcontent = buffer;

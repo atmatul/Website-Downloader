@@ -6,7 +6,7 @@
 void file_write(char *path, char *content) {
     FILE *log_file;
     if ((log_file = fopen(path, "w")) != 0) {
-        fprintf(log_file, content);
+        fprintf(log_file, "%s", content);
         fclose(log_file);
     } else {
         printf("ERROR: Could not write to log file.\n");
