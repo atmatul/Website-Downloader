@@ -9,8 +9,6 @@
 
 #include "includes.h"
 
-#define HOST "coding.debuntu.org"
-#define PAGE "/"
 #define PORT 80
 #define USERAGENT "NPLAB 1.0"
 
@@ -50,18 +48,13 @@ char *build_get_query(char *host, char *page) {
     return query;
 }
 
-int fetch_url(const char *url, char **header, char **content) {
+int fetch_url(char *host, char* page, char **header, char **content) {
     struct sockaddr_in *server_addr;
     int socket_id;
     int result_id;
     char *ip;
     char *http_header;
     char buffer[BUFSIZ + 1];
-    char *host;
-    char *page;
-
-    host = HOST;
-    page = PAGE;
 
     socket_id = create_socket();
     ip = resolve_ip_address(host);

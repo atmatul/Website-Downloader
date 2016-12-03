@@ -6,10 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#define MAX_PATH_LENGTH 1000
+#include "util.h"
 
-void notify_error(const char* msg) {
-    printf("ERROR: %s\n", msg);
-    exit(EXIT_FAILURE);
-}
 #endif //WEBSITE_DOWNLOADER_INCLUDES_H_H

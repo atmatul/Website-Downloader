@@ -8,6 +8,7 @@ set(SOURCE_FILES main.c
         lib/extractor.h
         lib/includes.h
         lib/downloader.h
-        lib/file_saver.h)
+        lib/file_saver.h
+        lib/list.h lib/util.h)
 
 add_executable(fetcher ${SOURCE_FILES})
