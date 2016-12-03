@@ -1,0 +1,8 @@
+//
+// Created by Kunal  Pal on 3/12/16.
+//
+
+#ifndef WEBSITE_DOWNLOADER_DATABASE_H
+#define WEBSITE_DOWNLOADER_DATABASE_H
+
+#endif //WEBSITE_DOWNLOADER_DATABASE_H
