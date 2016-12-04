@@ -9,25 +9,33 @@ int main() {
     char* page = "/hbase/pber.html";
     char* root_save_path = "/Users/kunal/Desktop/NP-Project/website-downloader/public_html";
 
+    char *pagelink;
+    pagelink = (char *) malloc(BUFSIZ * sizeof(char));
+
     MYSQL* connection = mysql_init(NULL);
     db_connect(connection);
+    db_reset(connection);
+    db_insert_link(connection, page);
+    int id = 1;
 
-    node* head = (node *) malloc(sizeof(node));
-    strcpy(head->page, page);
-    head->next = NULL;
-
-    do {
+    while (1) {
         char *content, *header;
-        fetch_url(host, head->page, &header, &content);
+        memset(pagelink, 0, strlen(pagelink));
+        db_fetch_link(connection, id, &pagelink);
+        char *url;
+        url = (char *) malloc(BUFSIZ * sizeof(char));
+        if (pagelink == NULL) break;
+        memcpy(url, pagelink, strlen(pagelink));
+        fetch_url(host, url, &header, &content);
         if (strlen(header) > 0) {
             if (!is_html(header)) {
-                link_extractor(&head, connection, content);
+                link_extractor(connection, pagelink, content);
             }
             char filepath[BUFSIZ];
             char *ext_name;
             ext_name = (char *) malloc(MAX_EXT_LENGTH * sizeof(char));
 
-            sprintf(filepath, "%s%s", root_save_path, head->page);
+            sprintf(filepath, "%s%s", root_save_path, pagelink);
             if (filepath[strlen(filepath) - 1] == '/') {
                 sprintf(filepath, "%s%s", filepath, "index.html");
             }
@@ -45,15 +53,12 @@ int main() {
                 notify_error("Unable to write to file.");
             free(ext_name);
         }
-        if (head->next != NULL) {
-            node* temp = head;
-            head = head->next;
-            free(temp);
-        }
         free(content);
         free(header);
-    } while(head != NULL);
+        id++;
+    }
 
+    free(pagelink);
     mysql_close(connection);
     return 0;
 }

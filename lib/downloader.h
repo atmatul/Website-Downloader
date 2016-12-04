@@ -36,7 +36,8 @@ char *resolve_ip_address(char *host) {
 
 char *build_get_query(char *host, char *page) {
     char *query;
-    char *getpage = page;
+    char *getpage;
+    getpage = page;
     char *tpl = "GET /%s HTTP/1.0\nHost: %s\nUser-Agent: %s\n\n";
     if (getpage[0] == '/') {
         getpage = getpage + 1;
@@ -90,17 +91,13 @@ int fetch_url(char *host, char* page, char **header, char **content) {
     int pagesize = 0;
     char *htmlcontent;
     while ((result_id = recv(socket_id, buffer, BUFSIZ, 0)) > 0) {
-        pagesize += result_id;
-        if (htmlstart == 0) {
-            *content = (char *) malloc(pagesize * sizeof(char));
-        } else {
-            *content = (char *) realloc(*content, pagesize * sizeof(char));
-        }
         if (htmlstart == 0) {
             htmlcontent = strstr(buffer, "\r\n\r\n");
             if (htmlcontent != NULL) {
                 htmlstart = 1;
                 htmlcontent += 4;
+                pagesize += strlen(htmlcontent);
+                *content = (char *) malloc(pagesize * sizeof(char));
                 int header_size = strlen(buffer) - strlen(htmlcontent);
                 *header = (char *) malloc((header_size + 1) * sizeof(char));
                 memcpy(*header, buffer, header_size);
@@ -108,8 +105,11 @@ int fetch_url(char *host, char* page, char **header, char **content) {
             }
         } else {
             htmlcontent = buffer;
+            pagesize += strlen(htmlcontent);
+            *content = (char *) realloc(*content, pagesize * sizeof(char));
         }
-        strcat(*content, htmlcontent);
+        if (htmlcontent != NULL)
+            strcpy(*content + strlen(*content), htmlcontent);
         memset(buffer, 0, result_id);
     }
     if (result_id < 0) {

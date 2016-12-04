@@ -43,12 +43,12 @@ int validate_link(char** link) {
     return EXIT_SUCCESS;
 }
 
-void link_extractor(node** lhead, MYSQL* connection, const char* markup) {
+void link_extractor(MYSQL* connection, const char* url, const char* markup) {
     static const char *regex = "src|href=\"((https?:/)?[/]?[^#\\s/'\"<>]+[:]?[0-9]*/?[^\\s'\"<>\\.]+\\.[^\\s'\"<>]*)\"";
     struct slre_cap caps[4];
     int i, j = 0, str_len = strlen(markup);
     char current_dir[BUFSIZ];
-    sprintf(current_dir, "%.*s", (int)(strrchr((*lhead)->page, '/') - (*lhead)->page + 1), (*lhead)->page);
+    sprintf(current_dir, "%.*s", (int)(strrchr(url, '/') - url + 1), url);
     while (j < str_len &&
            (i = slre_match(regex, markup + j, str_len - j, caps, 4, SLRE_IGNORE_CASE)) > 0) {
         // extract subpattern
@@ -62,14 +62,12 @@ void link_extractor(node** lhead, MYSQL* connection, const char* markup) {
                 sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
                 sprintf(sanitized_link, "%s%s", current_dir, subpat);
                 if (!validate_link(&sanitized_link)) {
-                    append(lhead, sanitized_link);
-                    db_insert_link(connection, sanitized_link);
+                    db_insert_unique_link(connection, sanitized_link);
                 }
                 free(sanitized_link);
             } else {
                 if (!validate_link(&subpat)) {
-                    append(lhead, subpat);
-                    db_insert_link(connection, subpat);
+                    db_insert_unique_link(connection, subpat);
                 }
             }
         }
