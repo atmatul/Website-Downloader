@@ -62,7 +62,7 @@ char *urlencode(char *url) {
     char* enc = (char *) malloc(BUFSIZ * sizeof(char));
     memset(enc, 0, BUFSIZ);
     for (i = 0; i < 256; i++) {
-        table[i] = isalnum(i) || i == '*' || i == '-' || i == '.' || i == '/' || i == '_' ? i : (i == ' ') ? '+' : 0;
+        table[i] = isalnum(i) || i == '*' || i == '-' || i == '.' || i == '/' || i == ':' || i == '_' ? i : (i == ' ') ? '+' : 0;
     }
 
     for (i = 0; *temp_url; temp_url++) {
@@ -79,9 +79,16 @@ char *urlencode(char *url) {
 }
 
 void link_extractor(MYSQL *connection, const char *url, const char *markup) {
+    char table[256] = {0};
+    int i = 0;
+    for (i = 0; i < 256; i++) {
+        table[i] = isalnum(i) || i == '*' || i == '-' || i == '.' ||
+                           i == '/' || i == ':' || i == '_' ? i : (i == ' ') ? '+' : 0;
+    }
+
     static const char *regex = "(src|href)=\"([^'\"<>]+)\"";
     struct slre_cap caps[4];
-    int i, j = 0, str_len = strlen(markup);
+    int j = 0, str_len = strlen(markup);
     char current_dir[BUFSIZ];
     sprintf(current_dir, "%.*s", (int) (strrchr(url, '/') - url + 1), url);
     while (j < str_len &&
@@ -90,8 +97,8 @@ void link_extractor(MYSQL *connection, const char *url, const char *markup) {
         subpat = (char *) malloc((caps[1].len + 1) * sizeof(char));
         memcpy(subpat, caps[1].ptr, caps[1].len);
         subpat[caps[1].len] = '\0';
+        char* encoded_link;
         if (is_local_link(subpat) == 0) {
-            char* encoded_link;
             if (subpat[0] != '/') {
                 char *sanitized_link;
                 sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
@@ -109,6 +116,10 @@ void link_extractor(MYSQL *connection, const char *url, const char *markup) {
                     free(encoded_link);
                 }
             }
+        } else {
+            encoded_link = urlencode(subpat);
+            db_insert_external_link(connection, encoded_link);
+            free(encoded_link);
         }
         free(subpat);
         j += i;

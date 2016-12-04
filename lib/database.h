@@ -19,6 +19,11 @@ int db_reset(MYSQL *connection) {
         notify_error("Unable to drop old table.\n");
     }
 
+    if (mysql_query(connection, "DROP TABLE Ext_Links;")) {
+        db_debug(connection);
+        notify_error("Unable to drop old table.\n");
+    }
+
     if (mysql_query(connection, "CREATE TABLE Links ("
             "id int NOT NULL AUTO_INCREMENT,"
             "link varchar(1023) NOT NULL,"
@@ -29,6 +34,18 @@ int db_reset(MYSQL *connection) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
     }
+
+    if (mysql_query(connection, "CREATE TABLE Ext_Links ("
+            "id int NOT NULL AUTO_INCREMENT,"
+            "link varchar(1023) NOT NULL,"
+            "occurence int DEFAULT 1,"
+            "PRIMARY KEY (id),"
+            "UNIQUE (link)"
+            ");")) {
+        db_debug(connection);
+        notify_error("Unable to re-create table.\n");
+    }
+
     return EXIT_SUCCESS;
 
 }
@@ -60,6 +77,20 @@ int db_insert_unique_link(MYSQL *connection, const char *url) {
     char query[BUFSIZ];
 
     sprintf(query, "INSERT INTO Links (link, occurence) "
+            " VALUES ('%s', 1) "
+            " ON DUPLICATE KEY UPDATE occurence = occurence + 1;", url);
+
+    if (mysql_query(connection, query)) {
+        db_debug(connection);
+        notify_error("Unable to insert into database.\n");
+    }
+    return EXIT_SUCCESS;
+}
+
+int db_insert_external_link(MYSQL *connection, const char *url) {
+    char query[BUFSIZ];
+
+    sprintf(query, "INSERT INTO Ext_Links (link, occurence) "
             " VALUES ('%s', 1) "
             " ON DUPLICATE KEY UPDATE occurence = occurence + 1;", url);
 
