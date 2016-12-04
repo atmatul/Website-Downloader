@@ -114,7 +114,6 @@ int fetch_url(char *host, char* page, char **header, char **content) {
             memcpy((*content+pagesize), htmlcontent, result_id);
             pagesize += result_id;
         }
-        printf("%s==============================", htmlcontent);
         memset(buffer, 0, result_id);
     }
     if (result_id < 0) {

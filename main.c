@@ -42,6 +42,15 @@ int main(int argc, char* argv[]) {
         url[strlen(pagelink)] = '\0';
         content_size = fetch_url(config.host, url, &header, &content);
         if (strlen(header) > 0) {
+            int status_code = extract_response_code(header);
+            while (status_code >= 300 && status_code < 400) {
+                char* redirect_page;
+                redirect_page = extract_redirect_location(header, config.host);
+                if (redirect_page == NULL) break;
+                else memcpy(url, redirect_page, strlen(redirect_page));
+                free(redirect_page);
+                content_size = fetch_url(config.host, url, &header, &content);
+            }
             if (!is_html(header)) {
                 link_extractor(connection, pagelink, content);
             }

@@ -31,14 +31,50 @@ int is_local_link(const char *link_url) {
 
 int is_html(const char *header) {
     static const char *regex = "text/html";
-    struct slre_cap caps[3];
+    struct slre_cap caps[2];
     int j = 0, str_len = strlen(header);
 
-    if (slre_match(regex, header + j, str_len - j, caps, 3, SLRE_IGNORE_CASE) > 0) {
+    if (slre_match(regex, header + j, str_len - j, caps, 2, SLRE_IGNORE_CASE) > 0) {
         return EXIT_SUCCESS;
     } else {
         return EXIT_FAILURE;
     }
+}
+
+int extract_response_code(const char* header) {
+    static const char *regex = "HTTP/1[^\\s]+ ([\\d]+)";
+    struct slre_cap caps[2];
+    int j = 0, str_len = strlen(header);
+
+    if (slre_match(regex, header + j, str_len - j, caps, 2, SLRE_IGNORE_CASE) > 0) {
+        if (caps[0].ptr != NULL) {
+            char *subpat;
+            subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
+            memcpy(subpat, caps[0].ptr, caps[0].len);
+            subpat[caps[0].len] = '\0';
+            int status_code = atoi(subpat);
+            free(subpat);
+            return status_code;
+        }
+    }
+    return EXIT_FAILURE;
+}
+
+char* extract_redirect_location(const char* header, const char* host) {
+    char regex[BUFSIZ] = {0};
+    sprintf(regex, "Location: http://%s([^\r\n]+)", host);
+    struct slre_cap caps[2];
+    int j = 0, str_len = strlen(header);
+    char *subpat = NULL;
+
+    if (slre_match(regex, header + j, str_len - j, caps, 2, SLRE_IGNORE_CASE) > 0) {
+        if (caps[0].ptr != NULL) {
+            subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
+            memcpy(subpat, caps[0].ptr, caps[0].len);
+            subpat[caps[0].len] = '\0';
+        }
+    }
+    return subpat;
 }
 
 int validate_link(char **link) {
