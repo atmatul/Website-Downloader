@@ -24,7 +24,8 @@ set(SOURCE_FILES main.c
         lib/util.h
         lib/database.h
         lib/ini/ini.h
-        lib/ini/ini.c)
+        lib/ini/ini.c
+        lib/config.h)
 
 add_executable(fetcher ${SOURCE_FILES})
 target_include_directories(fetcher PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
