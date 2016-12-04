@@ -1,7 +1,7 @@
 #ifndef WEBSITE_DOWNLOADER_UTIL_H
 #define WEBSITE_DOWNLOADER_UTIL_H
 
-#define NUMBER_OF_MIMETYPES 7
+#define NUMBER_OF_MIMETYPES 8
 #define MAX_EXT_LENGTH 6
 
 struct snode {
@@ -18,7 +18,8 @@ char *allowed_exts[NUMBER_OF_MIMETYPES] = {
         ".ico",
         ".png",
         ".jpg",
-        ".jpeg"
+        ".jpeg",
+        ".gif"
 };
 
 int match_extension(char *path, char **ext_name) {

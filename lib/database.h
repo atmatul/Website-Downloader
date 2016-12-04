@@ -59,7 +59,6 @@ int db_insert_link(MYSQL *connection, const char *url) {
 int db_insert_unique_link(MYSQL *connection, const char *url) {
     char query[BUFSIZ];
 
-
     sprintf(query, "INSERT INTO Links (link, occurence) "
             " VALUES ('%s', 1) "
             " ON DUPLICATE KEY UPDATE occurence = occurence + 1;", url);
