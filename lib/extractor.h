@@ -55,8 +55,7 @@ int validate_link(char **link) {
     return EXIT_SUCCESS;
 }
 
-char *urlencode(char *url) {
-    char table[256] = {0};
+char *urlencode(char *url, char* table) {
     char* temp_url = url;
     int i;
     char* enc = (char *) malloc(BUFSIZ * sizeof(char));
@@ -104,20 +103,20 @@ void link_extractor(MYSQL *connection, const char *url, const char *markup) {
                 sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
                 sprintf(sanitized_link, "%s%s", current_dir, subpat);
                 if (!validate_link(&sanitized_link)) {
-                    encoded_link = urlencode(sanitized_link);
+                    encoded_link = urlencode(sanitized_link, table);
                     db_insert_unique_link(connection, encoded_link);
                     free(encoded_link);
                 }
                 free(sanitized_link);
             } else {
                 if (!validate_link(&subpat)) {
-                    encoded_link = urlencode(subpat);
+                    encoded_link = urlencode(subpat, table);
                     db_insert_unique_link(connection, encoded_link);
                     free(encoded_link);
                 }
             }
         } else {
-            encoded_link = urlencode(subpat);
+            encoded_link = urlencode(subpat, table);
             db_insert_external_link(connection, encoded_link);
             free(encoded_link);
         }
@@ -125,6 +124,5 @@ void link_extractor(MYSQL *connection, const char *url, const char *markup) {
         j += i;
     }
 }
-
 
 #endif //WEBSITE_DOWNLOADER_EXTRACTOR_H

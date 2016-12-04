@@ -20,6 +20,10 @@ int main(int argc, char* argv[]) {
     char *pagelink;
     pagelink = (char *) malloc(BUFSIZ * sizeof(char));
 
+    char delete_command[BUFSIZ];
+    sprintf(delete_command, "rm -rf %s/*", config.root_save_path);
+    system(delete_command);
+
     MYSQL* connection = mysql_init(NULL);
     db_connect(connection);
     db_reset(connection);
@@ -28,6 +32,7 @@ int main(int argc, char* argv[]) {
 
     while (1) {
         char *content, *header;
+        int content_size = 0;
         memset(pagelink, 0, strlen(pagelink));
         db_fetch_link(connection, id, &pagelink);
         char *url;
@@ -35,7 +40,7 @@ int main(int argc, char* argv[]) {
         if (pagelink == NULL) break;
         memcpy(url, pagelink, strlen(pagelink));
         url[strlen(pagelink)] = '\0';
-        fetch_url(config.host, url, &header, &content);
+        content_size = fetch_url(config.host, url, &header, &content);
         if (strlen(header) > 0) {
             if (!is_html(header)) {
                 link_extractor(connection, pagelink, content);
@@ -56,7 +61,7 @@ int main(int argc, char* argv[]) {
             sprintf(dirpath, "%.*s", (int)(strrchr(filepath, '/') - filepath), filepath);
             sprintf(cmd_mkdir, "[ -d %s ] || mkdir -p %s", dirpath, dirpath);
             if (!system(cmd_mkdir)){
-                file_write(filepath, content);
+                file_write(filepath, content, is_html(header), content_size);
                 printf("Wrote: %s\n", filepath);
             } else
                 notify_error("Unable to write to file.");

@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 
 #include "includes.h"
+#include "extractor.h"
 
 #define PORT 80
 #define USERAGENT "NPLAB 1.0"
@@ -85,6 +86,7 @@ int fetch_url(char *host, char* page, char **header, char **content) {
         sent += result_id;
     }
 
+    int ishtml;
     // Receiving the page
     memset(buffer, 0, sizeof(buffer));
     int htmlstart = 0;
@@ -96,31 +98,39 @@ int fetch_url(char *host, char* page, char **header, char **content) {
             if (htmlcontent != NULL) {
                 htmlstart = 1;
                 htmlcontent += 4;
-                pagesize += strlen(htmlcontent);
-                *content = (char *) malloc(pagesize * sizeof(char));
-                int header_size = strlen(buffer) - strlen(htmlcontent);
+                int header_size = (int) (htmlcontent - buffer);
                 *header = (char *) malloc((header_size + 1) * sizeof(char));
                 memcpy(*header, buffer, header_size);
                 *(*header + header_size) = '\0';
+                pagesize += result_id - header_size;
+                *content = (char *) malloc(pagesize * sizeof(char));
+                memset(*content, 0, pagesize);
+                memcpy(*content, htmlcontent, pagesize);
             }
         } else {
             htmlcontent = buffer;
-            pagesize += strlen(htmlcontent);
-            *content = (char *) realloc(*content, pagesize * sizeof(char));
+            *content = (char *) realloc(*content, (pagesize + result_id) * sizeof(char));
+            memset((*content+pagesize), 0, result_id);
+            memcpy((*content+pagesize), htmlcontent, result_id);
+            pagesize += result_id;
         }
-        if (htmlcontent != NULL)
-            strcpy(*content + strlen(*content), htmlcontent);
+        printf("%s==============================", htmlcontent);
         memset(buffer, 0, result_id);
     }
     if (result_id < 0) {
         notify_error("Error receiving data");
     }
 
+    if (!is_html(*header)) {
+        *content = (char *) realloc(*content, (pagesize + 1) * sizeof(char));
+        memset((*content+pagesize), '\0', 1);
+    }
+
     free(http_header);
     free(server_addr);
     free(ip);
     close(socket_id);
-    return EXIT_SUCCESS;
+    return pagesize;
 }
 
 #endif //WEBSITE_DOWNLOADER_DOWNLOADER_H
