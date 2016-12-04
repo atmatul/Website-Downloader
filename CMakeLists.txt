@@ -4,6 +4,7 @@ project(website_downloader)
 set(CMAKE_CXX_STANDARD 11)
 
 include(FindPkgConfig)
+
 pkg_check_modules(LIBMYSQLCLIENT REQUIRED mysqlclient)
 
 foreach(FLAG ${LIBMYSQLCLIENT_CFLAGS_OTHER})
@@ -19,7 +20,11 @@ set(SOURCE_FILES main.c
         lib/includes.h
         lib/downloader.h
         lib/file_saver.h
-        lib/list.h lib/util.h lib/database.h)
+        lib/list.h
+        lib/util.h
+        lib/database.h
+        lib/ini/ini.h
+        lib/ini/ini.c)
 
 add_executable(fetcher ${SOURCE_FILES})
 target_include_directories(fetcher PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
