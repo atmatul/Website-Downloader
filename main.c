@@ -26,6 +26,7 @@ int main() {
         url = (char *) malloc(BUFSIZ * sizeof(char));
         if (pagelink == NULL) break;
         memcpy(url, pagelink, strlen(pagelink));
+        url[strlen(pagelink)] = '\0';
         fetch_url(host, url, &header, &content);
         if (strlen(header) > 0) {
             if (!is_html(header)) {
@@ -55,7 +56,7 @@ int main() {
         }
         free(content);
         free(header);
-        id++;
+        id = db_fetch_next_id(connection, id);
     }
 
     free(pagelink);

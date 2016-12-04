@@ -20,10 +20,12 @@ int db_reset(MYSQL *connection) {
     }
 
     if (mysql_query(connection, "CREATE TABLE Links ("
-                    "id int NOT NULL AUTO_INCREMENT,"
-                    "link varchar(1023) NOT NULL,"
-                    "PRIMARY KEY (id)"
-                    ");")) {
+            "id int NOT NULL AUTO_INCREMENT,"
+            "link varchar(1023) NOT NULL,"
+            "occurence int DEFAULT 1,"
+            "PRIMARY KEY (id),"
+            "UNIQUE (link)"
+            ");")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
     }
@@ -57,11 +59,10 @@ int db_insert_link(MYSQL *connection, const char *url) {
 int db_insert_unique_link(MYSQL *connection, const char *url) {
     char query[BUFSIZ];
 
-    sprintf(query, "INSERT INTO Links (link) "
-            "SELECT * FROM (SELECT '%s') AS tmp"
-            "    WHERE NOT EXISTS ("
-            "            SELECT link FROM Links WHERE link = '%s'"
-            "    ) LIMIT 1;", url, url);
+
+    sprintf(query, "INSERT INTO Links (link, occurence) "
+            " VALUES ('%s', 1) "
+            " ON DUPLICATE KEY UPDATE occurence = occurence + 1;", url);
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
@@ -70,7 +71,32 @@ int db_insert_unique_link(MYSQL *connection, const char *url) {
     return EXIT_SUCCESS;
 }
 
-int db_fetch_link(MYSQL* connection, int id, char** link) {
+int db_fetch_next_id(MYSQL *connection, int id) {
+    char query[BUFSIZ];
+
+    sprintf(query, "SELECT id FROM Links WHERE id > '%d' ORDER BY id ASC LIMIT 1;", id);
+
+    if (mysql_query(connection, query)) {
+        db_debug(connection);
+        notify_error("Unable to insert into database.\n");
+    }
+
+    int new_id = id + 1;
+
+    MYSQL_RES *result = mysql_store_result(connection);
+    if (mysql_num_rows(result) == 1) {
+        MYSQL_ROW link_row = mysql_fetch_row(result);
+        if (link_row[0]) {
+            new_id = atoi(link_row[0]);
+        }
+    }
+    mysql_free_result(result);
+
+    return new_id;
+}
+
+
+int db_fetch_link(MYSQL *connection, int id, char **link) {
     char query[BUFSIZ];
 
     sprintf(query, "SELECT link FROM Links WHERE id = '%d' LIMIT 1;", id);
@@ -81,16 +107,18 @@ int db_fetch_link(MYSQL* connection, int id, char** link) {
     }
 
     MYSQL_RES *result = mysql_store_result(connection);
-    MYSQL_ROW link_row = mysql_fetch_row(result);
-    if (link_row != NULL) {
+    if (mysql_num_rows(result) == 1) {
+        MYSQL_ROW link_row = mysql_fetch_row(result);
         if (link_row[0]) {
             strcpy(*link, link_row[0]);
         }
     } else {
         *link = NULL;
     }
+
     mysql_free_result(result);
 
     return EXIT_SUCCESS;
 }
+
 #endif //WEBSITE_DOWNLOADER_DATABASE_H
