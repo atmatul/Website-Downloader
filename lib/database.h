@@ -28,6 +28,7 @@ int db_reset(MYSQL *connection) {
             "id int NOT NULL AUTO_INCREMENT,"
             "link varchar(1023) NOT NULL,"
             "occurence int DEFAULT 1,"
+            "tags text,"
             "PRIMARY KEY (id),"
             "UNIQUE (link)"
             ");")) {
@@ -72,6 +73,19 @@ int db_insert_link(MYSQL *connection, const char *url) {
     return EXIT_SUCCESS;
 }
 
+int db_add_tags(MYSQL* connection, int id, char* tags) {
+    char query[2*BUFSIZ];
+
+    sprintf(query, "UPDATE Links "
+            "SET tags='%s' "
+            "WHERE id='%d';", tags, id);
+
+    if (mysql_query(connection, query)) {
+        db_debug(connection);
+        notify_error("Unable to insert into database.\n");
+    }
+    return EXIT_SUCCESS;
+}
 
 int db_insert_unique_link(MYSQL *connection, const char *url) {
     char query[BUFSIZ];

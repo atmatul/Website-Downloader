@@ -113,6 +113,37 @@ char *urlencode(char *url, char* table) {
     return enc;
 }
 
+void tags_extractor(MYSQL *connection, int id, const char *markup) {
+    static const char *regex = "<h1[^>]*>([^<\r\n]*)[^<]*</h1>";
+    struct slre_cap caps[4];
+    int i, j = 0, str_len = strlen(markup);
+    char *tags = (char *) malloc(BUFSIZ * sizeof(char));
+    memset(tags, '\0', BUFSIZ);
+    while (j < str_len &&
+           (i = slre_match(regex, markup + j, str_len - j, caps, 4, SLRE_IGNORE_CASE)) > 0) {
+        char *subpat;
+        subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
+        memcpy(subpat, caps[0].ptr, caps[0].len);
+        subpat[caps[0].len] = '\0';
+        if (strlen(tags) == 0)
+            sprintf(tags, "%s", subpat);
+        else
+            sprintf(tags, "%s | %s", tags, subpat);
+
+        free(subpat);
+        j += i;
+    }
+    if (strlen(tags) > 0) {
+        char escaped_tags[BUFSIZ];
+        int len = mysql_real_escape_string(connection, escaped_tags, tags, strlen(tags));
+        escaped_tags[len] = '\0';
+        db_add_tags(connection, id, escaped_tags);
+    }
+    free(tags);
+}
+
+
+
 void link_extractor(MYSQL *connection, const char *url, const char *markup) {
     char table[256] = {0};
     int i = 0;

@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
             }
             if (!is_html(header)) {
                 link_extractor(connection, pagelink, content);
+                tags_extractor(connection, id, content);
             }
             char filepath[BUFSIZ];
             char *ext_name;
