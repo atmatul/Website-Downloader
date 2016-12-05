@@ -30,7 +30,8 @@ int db_reset(MYSQL *connection) {
             "occurence int DEFAULT 1,"
             "tags text,"
             "PRIMARY KEY (id),"
-            "UNIQUE (link)"
+            "UNIQUE (link),"
+            "FULLTEXT (tags)"
             ");")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
