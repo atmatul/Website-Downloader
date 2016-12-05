@@ -57,7 +57,24 @@ int extract_response_code(const char* header) {
             return status_code;
         }
     }
-    return EXIT_FAILURE;
+    return -1;
+}
+
+char* extract_search_string(const char* header) {
+    static const char *regex = "GET /[^=]+=([^\\s&]*)";
+    struct slre_cap caps[2];
+    int j = 0, str_len = strlen(header);
+
+    if (slre_match(regex, header + j, str_len - j, caps, 2, SLRE_IGNORE_CASE) > 0) {
+        if (caps[0].ptr != NULL && strlen(caps[0].ptr) != 0) {
+            char *subpat;
+            subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
+            memcpy(subpat, caps[0].ptr, caps[0].len);
+            subpat[caps[0].len] = '\0';
+            return subpat;
+        }
+    }
+    return NULL;
 }
 
 char* extract_redirect_location(const char* header, const char* host) {
@@ -142,8 +159,6 @@ void tags_extractor(MYSQL *connection, int id, const char *markup) {
     free(tags);
 }
 
-
-
 void link_extractor(MYSQL *connection, const char *url, const char *markup) {
     char table[256] = {0};
     int i = 0;
@@ -191,5 +206,9 @@ void link_extractor(MYSQL *connection, const char *url, const char *markup) {
         j += i;
     }
 }
+
+
+
+
 
 #endif //WEBSITE_DOWNLOADER_EXTRACTOR_H

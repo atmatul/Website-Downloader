@@ -166,4 +166,20 @@ int db_fetch_link(MYSQL *connection, int id, char **link) {
     return EXIT_SUCCESS;
 }
 
+MYSQL_RES* db_search(MYSQL *connection, const char* search) {
+    char query[BUFSIZ];
+    sprintf(query, "SELECT occurence, link, tags FROM Links\n"
+            "  WHERE MATCH(tags) AGAINST ('%s')\n"
+            "    ORDER BY (MATCH(tags) AGAINST ('%s')) * occurence DESC;", search, search);
+
+    if (mysql_query(connection, query)) {
+        db_debug(connection);
+        notify_error("Unable to insert into database.\n");
+    }
+
+    MYSQL_RES *result = mysql_store_result(connection);
+    return result;
+}
+
+
 #endif //WEBSITE_DOWNLOADER_DATABASE_H
