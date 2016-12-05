@@ -81,6 +81,46 @@ char* extract_search_string(const char* header) {
     return "";
 }
 
+void description_extractor(MYSQL* connection, int id, char* content) {
+    char *pattern = strstr(content, "DESCRIPTION\n");
+    char *pattern_next;
+    char *data = (char *) malloc((BUFSIZ * 1000) * sizeof(char));
+    int i = 0, j = 0;
+    if (pattern != NULL)
+        pattern += 12;
+    else
+        return;
+    while(1) {
+        pattern_next = strstr(pattern, "\n");
+        if (pattern_next == NULL)
+            break;
+        if (pattern == pattern_next) {
+            pattern++;
+        } else {
+            if (pattern == strstr(pattern, "       ")) {
+                j = pattern_next - (pattern + 7);
+                memcpy(data + i, pattern + 7, j);
+                i = j + i;
+                data[i] = '\0';
+                pattern = pattern_next + 1;
+            } else {
+                break;
+            }
+        }
+    }
+    if (strlen(data) > 0) {
+        for (i = 0; i < strlen(data); i++) {
+            if (data[i] == '\'' || data[i] == '\"')
+                data[i] = ' ';
+        }
+        char escaped_tags[BUFSIZ * 1000];
+        int len = mysql_real_escape_string(connection, escaped_tags, data, strlen(data));
+        escaped_tags[len] = '\0';
+        db_add_tags(connection, id, escaped_tags);
+    }
+    free(data);
+}
+
 char* extract_redirect_location(const char* header, const char* host) {
     char regex[BUFSIZ] = {0};
     sprintf(regex, "Location: http://%s([^\r\n]+)", host);
@@ -163,25 +203,93 @@ void tags_extractor(MYSQL *connection, int id, const char *markup) {
     free(tags);
 }
 
-void link_extractor(MYSQL *connection, const char *url, const char *markup) {
+void href_link_extractor(MYSQL *connection, const char *url, const char *markup) {
     char table[256] = {0};
     int i = 0;
     for (i = 0; i < 256; i++) {
         table[i] = isalnum(i) || i == '*' || i == '-' || i == '.' ||
                            i == '/' || i == ':' || i == '_' ? i : (i == ' ') ? '+' : 0;
     }
-
-    static const char *regex = "(src|href)=\"([^'\"<>]+)\"";
-    struct slre_cap caps[4];
+    static const char *regex = "href=\"([^'\"<>]+)\"";
+    struct slre_cap caps[2];
     int j = 0, str_len = strlen(markup);
     char current_dir[BUFSIZ];
     sprintf(current_dir, "%.*s", (int) (strrchr(url, '/') - url + 1), url);
     while (j < str_len &&
-           (i = slre_match(regex, markup + j, str_len - j, caps, 4, SLRE_IGNORE_CASE)) > 0) {
+           (i = slre_match(regex, markup + j, str_len - j, caps, 2, SLRE_IGNORE_CASE)) > 0) {
         char *subpat;
-        subpat = (char *) malloc((caps[1].len + 1) * sizeof(char));
-        memcpy(subpat, caps[1].ptr, caps[1].len);
-        subpat[caps[1].len] = '\0';
+        subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
+        memcpy(subpat, caps[0].ptr, caps[0].len);
+        subpat[caps[0].len] = '\0';
+        char* encoded_link;
+        if (is_local_link(subpat) == 0) {
+            if (subpat[0] != '/') {
+                char *sanitized_link;
+                sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
+                sprintf(sanitized_link, "%s%s", current_dir, subpat);
+                if (!validate_link(&sanitized_link)) {
+                    encoded_link = urlencode(sanitized_link, table);
+                    db_insert_unique_link(connection, encoded_link);
+                    free(encoded_link);
+                }
+                free(sanitized_link);
+            } else {
+                if (!validate_link(&subpat)) {
+                    encoded_link = urlencode(subpat, table);
+                    db_insert_unique_link(connection, encoded_link);
+                    free(encoded_link);
+                }
+            }
+        } else {
+            encoded_link = urlencode(subpat, table);
+            db_insert_external_link(connection, encoded_link);
+            free(encoded_link);
+        }
+        free(subpat);
+        j += i;
+
+        // speeding up
+        char* pattern1 = (char *)(markup + j);
+        char* pattern2 = (char *)(markup + j);
+        int p1_length = -1, p2_length = -1;
+        pattern1 = strstr(pattern1, "src");
+        pattern2 = strstr(pattern2, "href");
+
+        if (pattern1 != NULL) {
+            p1_length = pattern1 - (markup + j);
+        }
+        if (pattern2 != NULL) {
+            p2_length = pattern2 - (markup + j);
+        }
+        if ( p1_length == p2_length ) {
+            if (p1_length == -1) continue;
+            else j+= p1_length;
+        } else {
+            j+= ((p1_length > p2_length) ?
+                       ((p2_length != -1) ? p2_length : p1_length) :
+                       ((p1_length != -1) ? p1_length : p2_length));
+        }
+    }
+}
+
+void src_link_extractor(MYSQL *connection, const char *url, const char *markup) {
+    char table[256] = {0};
+    int i = 0;
+    for (i = 0; i < 256; i++) {
+        table[i] = isalnum(i) || i == '*' || i == '-' || i == '.' ||
+                   i == '/' || i == ':' || i == '_' ? i : (i == ' ') ? '+' : 0;
+    }
+    static const char *regex = "src=\"([^'\"<>]+)\"";
+    struct slre_cap caps[2];
+    int j = 0, str_len = strlen(markup);
+    char current_dir[BUFSIZ];
+    sprintf(current_dir, "%.*s", (int) (strrchr(url, '/') - url + 1), url);
+    while (j < str_len &&
+           (i = slre_match(regex, markup + j, str_len - j, caps, 2, SLRE_IGNORE_CASE)) > 0) {
+        char *subpat;
+        subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
+        memcpy(subpat, caps[0].ptr, caps[0].len);
+        subpat[caps[0].len] = '\0';
         char* encoded_link;
         if (is_local_link(subpat) == 0) {
             if (subpat[0] != '/') {
@@ -210,7 +318,6 @@ void link_extractor(MYSQL *connection, const char *url, const char *markup) {
         j += i;
     }
 }
-
 
 
 

@@ -1,6 +1,7 @@
 #include "lib/includes.h"
 #include "lib/database.h"
 #include "lib/extractor.h"
+#include "lib/config.h"
 
 #define MAX_REQUEST_SIZE 10000
 #define MAX_RESPONSE_SIZE 999999
@@ -21,27 +22,30 @@ void write_log(char *req, char *resp);
 
 int prepare_response(char *search, char *resp);
 
-char *root_path = "/Users/kunal/Desktop/NP-Project/website-downloader";
+configuration config;
 
 int client_socket_ids[NUMBER_OF_CONNECTIONS];
 
 int main(int argc, char *argv[]) {
-    int socket_id, req_len, pid, reuse_id;
+    int socket_id, req_len, reuse_id;
     int is_accepting = 1;
     socklen_t len;
     char request[MAX_REQUEST_SIZE], response[MAX_RESPONSE_SIZE];
     char client_addr_ascii[50], client_addr_dns[50];
     struct sockaddr_in6 client_addr;
-    struct stat root_path_stat;
     struct addrinfo hints, *server_info;
     fd_set observers;
     struct timeval timeout;
+    char *config_filename;
 
-    // getting the root path from terminal
-    if (argc > 0)
-        if (stat(argv[1], &root_path_stat) == 0 && S_ISDIR(root_path_stat.st_mode))
-            root_path = argv[1];
-    if (root_path[strlen(root_path) - 1] == '/') root_path[strlen(root_path) - 1] = '\0';
+    if (argc > 1) {
+        config_filename = argv[1];
+    } else {
+        config_filename = "../config.ini";
+    }
+    if (ini_parse(config_filename, handler, &config) < 0) {
+        notify_error("Unable to load config file.");
+    }
 
     // retrieving the server address
     memset(&hints, 0, sizeof(hints));
@@ -240,14 +244,14 @@ long prepare_response_html(char *search, char **file_content) {
     char path[BUFSIZ];
     char *content;
     if (search == NULL) {
-        sprintf(path, "%s/%s", root_path, "/partials/_index.html");
+        sprintf(path, "%s/%s", config.root_path, "/partials/_index.html");
         read_file(path, &content);
         sprintf(*file_content, content, "");
         free(content);
         return strlen(*file_content);
     }
 
-    sprintf(path, "%s/%s", root_path, "/partials/_header.html");
+    sprintf(path, "%s/%s", config.root_path, "/partials/_header.html");
     read_file(path, &content);
     sprintf(*file_content, content, search);
 
@@ -265,12 +269,14 @@ long prepare_response_html(char *search, char **file_content) {
         sprintf(*file_content, "%s<p>No results found.</p>", *file_content);
     }
     while ((row = mysql_fetch_row(result)) != NULL) {
+        char full_link[BUFSIZ];
+        sprintf(full_link, "http://%s%s", config.host, row[1]);
         sprintf(*file_content, "%s<div class=\"result-container\">"
-                               "<h3><a href=\"%s\"><b>%s</b></a></h3>",
-                *file_content, row[1], row[1]);
+                               "<h3><a target=\"_blank\" href=\"%s\"><b>%s</b></a></h3>",
+                *file_content, full_link, row[1]);
         sprintf(*file_content, "%s<p>%s</p>", *file_content, row[2]);
     }
-    sprintf(path, "%s/%s", root_path, "/partials/_footer.html");
+    sprintf(path, "%s/%s", config.root_path, "/partials/_footer.html");
     read_file(path, &content);
     free(content);
 
@@ -305,7 +311,7 @@ int prepare_response(char *search, char *resp) {
         free(file_content);
         printf("Sending Response: 200 OK\n\n");
     } else {
-        sprintf(path_404, "%s/404.html", root_path);
+        sprintf(path_404, "%s/404.html", config.root_path);
         sprintf(resp, "HTTP/1.1 404 NOT FOUND\n");
         sprintf(resp, "%sContent-Type: text/html\n", resp);
         sprintf(resp, "%sConnection: close\n", resp);
@@ -327,7 +333,7 @@ int prepare_response(char *search, char *resp) {
 void write_log(char *req, char *resp) {
     FILE *log_file;
     char log_path[LENGTH_OF_PATH];
-    sprintf(log_path, "%s/server.log", root_path);
+    sprintf(log_path, "%s/server.log", config.root_path);
     if ((log_file = fopen(log_path, "a")) != 0) {
         fprintf(log_file, "------| REQUEST  |------------------------------------------------\n");
         fprintf(log_file, "%s\n", req);

@@ -52,8 +52,10 @@ int main(int argc, char* argv[]) {
                 content_size = fetch_url(config.host, url, &header, &content);
             }
             if (!is_html(header)) {
-                link_extractor(connection, pagelink, content);
+                src_link_extractor(connection, pagelink, content);
+                href_link_extractor(connection, pagelink, content);
                 tags_extractor(connection, id, content);
+//                description_extractor(connection, id, content);
             }
             char filepath[BUFSIZ];
             char *ext_name;

@@ -8,6 +8,7 @@ typedef struct {
     const char* root_save_path;
     char *host;
     char *page;
+    char *root_path;
 } configuration;
 
 static int handler(void *user, const char *section, const char *name,
@@ -21,6 +22,8 @@ static int handler(void *user, const char *section, const char *name,
         pconfig->host = strdup(value);
     } else if (MATCH("server", "start_page")) {
         pconfig->page = strdup(value);
+    } else if (MATCH("search_engine", "root_path")) {
+        pconfig->root_path = strdup(value);
     } else {
         return EXIT_FAILURE;  /* unknown section/name, error */
     }

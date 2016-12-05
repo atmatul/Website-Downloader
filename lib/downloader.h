@@ -120,7 +120,7 @@ int fetch_url(char *host, char* page, char **header, char **content) {
         notify_error("Error receiving data");
     }
 
-    if (!is_html(*header)) {
+    if (*header != NULL && !is_html(*header)) {
         *content = (char *) realloc(*content, (pagesize + 1) * sizeof(char));
         memset((*content+pagesize), '\0', 1);
     }

@@ -16,6 +16,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <mysql.h>
+#include <math.h>
 
 #include "util.h"
 

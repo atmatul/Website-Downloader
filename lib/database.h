@@ -75,7 +75,7 @@ int db_insert_link(MYSQL *connection, const char *url) {
 }
 
 int db_add_tags(MYSQL* connection, int id, char* tags) {
-    char query[2*BUFSIZ];
+    char query[100 * BUFSIZ];
 
     sprintf(query, "UPDATE Links "
             "SET tags='%s' "
