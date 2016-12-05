@@ -61,7 +61,7 @@ int extract_response_code(const char* header) {
 }
 
 char* extract_search_string(const char* header) {
-    static const char *regex = "GET /[^=]+=([^\\s&]*)";
+    static const char *regex = "GET /[^=]+=([^\\s&]+)";
     struct slre_cap caps[2];
     int j = 0, str_len = strlen(header);
 

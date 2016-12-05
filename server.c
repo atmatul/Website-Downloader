@@ -31,7 +31,7 @@ long prepare_response_html(char *path, char **file_content);
 
 void write_log(char *req, char *resp);
 
-int prepare_response(char *path, char *resp);
+int prepare_response(char *search, char *resp);
 
 char *root_path = "/Users/kunal/NetworkLab/public_html";
 
@@ -209,12 +209,12 @@ int remove_client_socket_id(int id) {
 int process_request(char *req, char *resp) {
     char *path_rel, search_query[LENGTH_OF_PATH];
     path_rel = extract_search_string(req);
-    printf("Search requested: %s\n", path_rel);
     if (path_rel != NULL) {
         sprintf(search_query, "%s", path_rel);
     } else {
         search_query[0] = '\0';
     }
+    printf("Search requested: %s\n", search_query);
     free(path_rel);
 
     // preparing response to be sent
@@ -228,27 +228,33 @@ int process_request(char *req, char *resp) {
  * @return long
  */
 long prepare_response_html(char *search, char **file_content) {
-    if (strlen(search) == 0) {
-
-    }
-    MYSQL *connection = mysql_init(NULL);
-    db_connect(connection);
-    MYSQL_RES *result = db_search(connection, search);
     *file_content = (char *) malloc(10 * BUFSIZ * sizeof(char));
-    MYSQL_ROW row;
     sprintf(*file_content, "<html><head><title>Search Results</title><head><body style=\""
             "width: 600px;"
             "margin: 50px auto;"
             "font-family: monospace;\">"
             "<form action=\"/index.html\" method=\"get\" style=\"font-size: 20px; margin-bottom: 20px;\">\n"
-            "  Search: <input type=\"text\" name=\"search\" style=\"font-size: 20px;\">"
+            "  Search: <input type=\"text\" name=\"search_query\" style=\"font-size: 12px;\n"
+            "    line-height: 24px;\n"
+            "    width: 300px;\n"
+            "    padding-left: 10px;\" value=\"%s\">"
             "  <button type=\"submit\" style=\"padding: 7px;\n"
             "    vertical-align: top;\n"
             "    background: #fff;\n"
             "    border: 1px #999 dashed;\n"
             "    cursor: pointer;\">Submit</button>\n"
             "</form>"
-    );
+    , search);
+    if (strlen(search) == 0) {
+        return strlen(*file_content);
+    }
+    MYSQL *connection = mysql_init(NULL);
+    db_connect(connection);
+    MYSQL_RES *result = db_search(connection, search);
+    MYSQL_ROW row;
+    if (mysql_num_rows(result) == 0) {
+        sprintf(*file_content, "%s<p>No results found.</p>", *file_content);
+    }
     while ((row = mysql_fetch_row(result)) != NULL) {
         sprintf(*file_content, "%s<h3><a  href=\"%s\"><b>%s</b></a></h3>", *file_content, row[1], row[1]);
         sprintf(*file_content, "%s<p>%s</p>", *file_content, row[2]);
@@ -261,28 +267,19 @@ long prepare_response_html(char *search, char **file_content) {
 
 /**
  * Method to prepare the response
- * @param path
+ * @param search
  * @param resp
  */
-int prepare_response(char *path, char *resp) {
+int prepare_response(char *search, char *resp) {
     int res_len = 0;
     char *file_content;
-    long input_file_size = prepare_response_html(path, &file_content);
+    long input_file_size = prepare_response_html(search, &file_content);
     char path_404[LENGTH_OF_PATH];
 
     if (input_file_size >= 0) {
         sprintf(resp, "HTTP/1.1 200 OK\n");
         sprintf(resp, "%sContent-Length: %ld\n", resp, input_file_size);
-        // set content type based on the path extension
-        char *ext_name;
-        ext_name = (char *) malloc(MAX_EXT_LENGTH * sizeof(char));
-        int ext_match_found = match_extension(path, &ext_name);
-
-        if (ext_match_found >= 0 && strlen(ext_name) > 0)
-            sprintf(resp, "%sContent-Type: text/html\n", resp);
-        else
-            sprintf(resp, "%sContent-Type: text/html\n", resp);
-        free(ext_name);
+        sprintf(resp, "%sContent-Type: text/html\n", resp);
         sprintf(resp, "%sConnection: close\n", resp);
 
         // in case of Binary files strlen can not be used
