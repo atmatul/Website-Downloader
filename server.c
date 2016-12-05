@@ -270,11 +270,12 @@ long prepare_response_html(char *search, char **file_content) {
     }
     while ((row = mysql_fetch_row(result)) != NULL) {
         char full_link[BUFSIZ];
-        sprintf(full_link, "http://%s%s", config.host, row[1]);
+        sprintf(full_link, "http://%s%s", config.host, row[2]);
         sprintf(*file_content, "%s<div class=\"result-container\">"
-                               "<h3><a target=\"_blank\" href=\"%s\"><b>%s</b></a></h3>",
-                *file_content, full_link, row[1]);
-        sprintf(*file_content, "%s<p>%s</p>", *file_content, row[2]);
+                               "<h3><a class=\"title\" target=\"_blank\" href=\"%s\"><b>%s</b></a></br>"
+                               "<a class=\"link\" target=\"_blank\" href=\"%s\">%s</a></h3>",
+                *file_content, full_link, row[1], full_link, row[2]);
+        sprintf(*file_content, "%s<p>%s</p>", *file_content, row[3]);
     }
     sprintf(path, "%s/%s", config.root_path, "/partials/_footer.html");
     read_file(path, &content);

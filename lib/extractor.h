@@ -81,6 +81,33 @@ char* extract_search_string(const char* header) {
     return "";
 }
 
+char* extract_title(const char* content) {
+    struct slre_cap caps[2];
+    int j = 0, str_len = strlen(content);
+    char *pattern_start = strstr(content, "<title>");
+    if (pattern_start == NULL) {
+        pattern_start = strstr(content, "<TITLE>");
+    }
+
+    char *pattern_end = strstr(content, "</title>");
+    if (pattern_end == NULL) {
+        pattern_end = strstr(content, "</TITLE>");
+    }
+
+    if (pattern_start != NULL && pattern_end != NULL) {
+        char *subpat = (char *) malloc(BUFSIZ * sizeof(char));
+        char *escaped_subpat = (char *) malloc(BUFSIZ * sizeof(char));
+        memcpy(subpat, pattern_start + 7, pattern_end - pattern_start - 7);
+        subpat[pattern_end - pattern_start - 7] = '\0';
+        mysql_escape_string(escaped_subpat, subpat, strlen(subpat));
+        free(subpat);
+        return escaped_subpat;
+    }
+
+    return "";
+}
+
+
 void description_extractor(MYSQL* connection, int id, char* content) {
     char *pattern = strstr(content, "DESCRIPTION\n");
     char *pattern_next;
@@ -203,83 +230,14 @@ void tags_extractor(MYSQL *connection, int id, const char *markup) {
     free(tags);
 }
 
-void href_link_extractor(MYSQL *connection, const char *url, const char *markup) {
-    char table[256] = {0};
-    int i = 0;
-    for (i = 0; i < 256; i++) {
-        table[i] = isalnum(i) || i == '*' || i == '-' || i == '.' ||
-                           i == '/' || i == ':' || i == '_' ? i : (i == ' ') ? '+' : 0;
-    }
-    static const char *regex = "href=\"([^'\"<>]+)\"";
-    struct slre_cap caps[2];
-    int j = 0, str_len = strlen(markup);
-    char current_dir[BUFSIZ];
-    sprintf(current_dir, "%.*s", (int) (strrchr(url, '/') - url + 1), url);
-    while (j < str_len &&
-           (i = slre_match(regex, markup + j, str_len - j, caps, 2, SLRE_IGNORE_CASE)) > 0) {
-        char *subpat;
-        subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
-        memcpy(subpat, caps[0].ptr, caps[0].len);
-        subpat[caps[0].len] = '\0';
-        char* encoded_link;
-        if (is_local_link(subpat) == 0) {
-            if (subpat[0] != '/') {
-                char *sanitized_link;
-                sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
-                sprintf(sanitized_link, "%s%s", current_dir, subpat);
-                if (!validate_link(&sanitized_link)) {
-                    encoded_link = urlencode(sanitized_link, table);
-                    db_insert_unique_link(connection, encoded_link);
-                    free(encoded_link);
-                }
-                free(sanitized_link);
-            } else {
-                if (!validate_link(&subpat)) {
-                    encoded_link = urlencode(subpat, table);
-                    db_insert_unique_link(connection, encoded_link);
-                    free(encoded_link);
-                }
-            }
-        } else {
-            encoded_link = urlencode(subpat, table);
-            db_insert_external_link(connection, encoded_link);
-            free(encoded_link);
-        }
-        free(subpat);
-        j += i;
 
-        // speeding up
-        char* pattern1 = (char *)(markup + j);
-        char* pattern2 = (char *)(markup + j);
-        int p1_length = -1, p2_length = -1;
-        pattern1 = strstr(pattern1, "src");
-        pattern2 = strstr(pattern2, "href");
-
-        if (pattern1 != NULL) {
-            p1_length = pattern1 - (markup + j);
-        }
-        if (pattern2 != NULL) {
-            p2_length = pattern2 - (markup + j);
-        }
-        if ( p1_length == p2_length ) {
-            if (p1_length == -1) continue;
-            else j+= p1_length;
-        } else {
-            j+= ((p1_length > p2_length) ?
-                       ((p2_length != -1) ? p2_length : p1_length) :
-                       ((p1_length != -1) ? p1_length : p2_length));
-        }
-    }
-}
-
-void src_link_extractor(MYSQL *connection, const char *url, const char *markup) {
+void regex_link_extractor(MYSQL *connection, const char *regex, const char *url, const char *markup) {
     char table[256] = {0};
     int i = 0;
     for (i = 0; i < 256; i++) {
         table[i] = isalnum(i) || i == '*' || i == '-' || i == '.' ||
                    i == '/' || i == ':' || i == '_' ? i : (i == ' ') ? '+' : 0;
     }
-    static const char *regex = "src=\"([^'\"<>]+)\"";
     struct slre_cap caps[2];
     int j = 0, str_len = strlen(markup);
     char current_dir[BUFSIZ];
@@ -319,7 +277,11 @@ void src_link_extractor(MYSQL *connection, const char *url, const char *markup) 
     }
 }
 
-
-
+void link_extractor(MYSQL *connection, const char *url, const char *markup) {
+    static const char *href_regex = "href=\"([^'\"<>]+)\"";
+    static const char *src_regex = "src=\"([^'\"<>]+)\"";
+    regex_link_extractor(connection, href_regex, url, markup);
+    regex_link_extractor(connection, src_regex, url, markup);
+}
 
 #endif //WEBSITE_DOWNLOADER_EXTRACTOR_H

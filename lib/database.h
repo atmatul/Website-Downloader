@@ -27,6 +27,7 @@ int db_reset(MYSQL *connection) {
     if (mysql_query(connection, "CREATE TABLE Links ("
             "id int NOT NULL AUTO_INCREMENT,"
             "link varchar(1023) NOT NULL,"
+            "title varchar(1023),"
             "occurence int DEFAULT 1,"
             "tags text,"
             "PRIMARY KEY (id),"
@@ -80,6 +81,20 @@ int db_add_tags(MYSQL* connection, int id, char* tags) {
     sprintf(query, "UPDATE Links "
             "SET tags='%s' "
             "WHERE id='%d';", tags, id);
+
+    if (mysql_query(connection, query)) {
+        db_debug(connection);
+        notify_error("Unable to insert into database.\n");
+    }
+    return EXIT_SUCCESS;
+}
+
+int db_insert_title(MYSQL *connection, const char* title, int id) {
+    char query[BUFSIZ];
+
+    sprintf(query, "UPDATE Links"
+            " SET title='%s' "
+            " WHERE id='%d';", title, id);
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
@@ -168,7 +183,8 @@ int db_fetch_link(MYSQL *connection, int id, char **link) {
 
 MYSQL_RES* db_search(MYSQL *connection, const char* search) {
     char query[BUFSIZ];
-    sprintf(query, "SELECT occurence, link, tags FROM Links\n"
+    sprintf(query, "SELECT occurence, title, link, CONCAT(LEFT(tags, 200), IF(LENGTH(tags)>200, \"...\", \"\"))"
+            " FROM Links\n"
             "  WHERE MATCH(tags) AGAINST ('%s')\n"
             "    ORDER BY (MATCH(tags) AGAINST ('%s')) * occurence DESC;", search, search);
 

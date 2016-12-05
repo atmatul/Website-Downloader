@@ -52,8 +52,12 @@ int main(int argc, char* argv[]) {
                 content_size = fetch_url(config.host, url, &header, &content);
             }
             if (!is_html(header)) {
-                src_link_extractor(connection, pagelink, content);
-                href_link_extractor(connection, pagelink, content);
+                char* title = extract_title(content);
+                if (strlen(title) > 0) {
+                    db_insert_title(connection, title, id);
+                    free(title);
+                }
+                link_extractor(connection, pagelink, content);
                 tags_extractor(connection, id, content);
 //                description_extractor(connection, id, content);
             }
