@@ -13,8 +13,7 @@ endforeach()
 
 link_directories(${LIBMYSQLCLIENT_LIBRARY_DIRS})
 
-set(SOURCE_FILES main.c
-        lib/slre/slre.h
+set(SOURCE_FILES lib/slre/slre.h
         lib/slre/slre.c
         lib/extractor.h
         lib/includes.h
@@ -27,6 +26,9 @@ set(SOURCE_FILES main.c
         lib/ini/ini.c
         lib/config.h)
 
-add_executable(fetcher ${SOURCE_FILES})
+add_executable(fetcher main.c ${SOURCE_FILES})
+add_executable(server server.c ${SOURCE_FILES})
 target_include_directories(fetcher PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
 target_link_libraries(fetcher PRIVATE ${LIBMYSQLCLIENT_LIBRARIES})
+target_include_directories(server PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
+target_link_libraries(server PRIVATE ${LIBMYSQLCLIENT_LIBRARIES})
