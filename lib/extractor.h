@@ -63,6 +63,10 @@ int extract_response_code(const char* header) {
 char* extract_search_string(const char* header) {
     static const char *regex = "GET /[^=]+=([^\\s&]+)";
     struct slre_cap caps[2];
+    char* contains_search_query = strstr(header, "search_query");
+    if (contains_search_query == NULL) {
+        return NULL;
+    }
     int j = 0, str_len = strlen(header);
 
     if (slre_match(regex, header + j, str_len - j, caps, 2, SLRE_IGNORE_CASE) > 0) {
@@ -74,7 +78,7 @@ char* extract_search_string(const char* header) {
             return subpat;
         }
     }
-    return NULL;
+    return "";
 }
 
 char* extract_redirect_location(const char* header, const char* host) {

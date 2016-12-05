@@ -207,12 +207,14 @@ int remove_client_socket_id(int id) {
  * @param resp
  */
 int process_request(char *req, char *resp) {
-    char *path_rel, search_query[LENGTH_OF_PATH];
+    char *path_rel, *search_query;
+    search_query = (char *) malloc(BUFSIZ * sizeof(char));
+
     path_rel = extract_search_string(req);
     if (path_rel != NULL) {
         sprintf(search_query, "%s", path_rel);
     } else {
-        search_query[0] = '\0';
+        search_query = NULL;
     }
     printf("Search requested: %s\n", search_query);
     free(path_rel);
@@ -229,6 +231,24 @@ int process_request(char *req, char *resp) {
  */
 long prepare_response_html(char *search, char **file_content) {
     *file_content = (char *) malloc(10 * BUFSIZ * sizeof(char));
+    if (search == NULL) {
+        sprintf(*file_content, "<html><head><title>Search Results</title><head><body style=\""
+                "width: 600px;"
+                "margin: 50px auto;"
+                "font-family: monospace;\">"
+                "<form action=\"/index.html\" method=\"get\" style=\"font-size: 20px; margin-bottom: 20px;\">\n"
+                "  Search: <input type=\"text\" name=\"search_query\" style=\"font-size: 12px;\n"
+                "    line-height: 24px;\n"
+                "    width: 300px;\n"
+                "    padding-left: 10px;\" value=\"%s\">"
+                "  <button type=\"submit\" style=\"padding: 7px;\n"
+                "    vertical-align: top;\n"
+                "    background: #fff;\n"
+                "    border: 1px #999 dashed;\n"
+                "    cursor: pointer;\">Submit</button>\n"
+                "</form>", "");
+        return strlen(*file_content);
+    }
     sprintf(*file_content, "<html><head><title>Search Results</title><head><body style=\""
             "width: 600px;"
             "margin: 50px auto;"
@@ -243,11 +263,13 @@ long prepare_response_html(char *search, char **file_content) {
             "    background: #fff;\n"
             "    border: 1px #999 dashed;\n"
             "    cursor: pointer;\">Submit</button>\n"
-            "</form>"
-    , search);
+            "</form>", search);
+
     if (strlen(search) == 0) {
+        sprintf(*file_content, "%s<p>No results found.</p>", *file_content);
         return strlen(*file_content);
     }
+
     MYSQL *connection = mysql_init(NULL);
     db_connect(connection);
     MYSQL_RES *result = db_search(connection, search);
