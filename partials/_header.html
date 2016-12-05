@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+    <style>
+        body {
+            width: 600px;
+            margin: 50px auto;
+            font-family: monospace;
+        }
+
+        form {
+            font-size: 20px;
+            margin-bottom: 40px;
+        }
+
+        input[type="text"] {
+            font-size: 12px;
+            line-height: 24px;
+            width: 300px;
+            padding-left: 10px;
+            border: none;
+            outline: none;
+            border-bottom: 2px solid #aaa;
+            border-left: 2px solid #aaa;
+            transition: border 0.5ms;
+        }
+
+        input[type="text"]:focus {
+            border-bottom: 2px solid #333;
+            border-left: 2px solid #333;
+        }
+
+        button {
+            padding: 7px;
+            vertical-align: top;
+            background: #fff;
+            border: 1px #999 dashed;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #eee;
+        }
+
+        h3 {
+            border-bottom: 1px dashed #ddd;
+        }
+
+        a {
+            text-decoration: none;
+            color: #22313F;
+        }
+
+        a:active, a:visited {
+            color: #336E7B;
+        }
+
+        hr {
+            border: 1px dashed #333;
+            margin-bottom: 20px;
+            margin-left: -40px;
+            margin-right: -40px;
+        }
+
+        .welcome {
+            text-align: center;
+            font-size: 40px;
+            margin-top: 100px;
+        }
+    </style>
+</head>
+<body>
+<form action="/index.html" method="get">
+    <input type="text" name="search_query" placeholder="Search" value="%s">
+    <button type="submit">Submit
+    </button>
+</form>
+<hr/>

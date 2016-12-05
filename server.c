@@ -1,17 +1,3 @@
-#include <sys/socket.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <arpa/inet.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <netdb.h>
-#include <fcntl.h>
-#include <mysql.h>
-
 #include "lib/includes.h"
 #include "lib/database.h"
 #include "lib/extractor.h"
@@ -27,13 +13,15 @@ int remove_client_socket_id(int id);
 
 int process_request(char *req, char *resp);
 
+int read_file(char *path, char **file_content);
+
 long prepare_response_html(char *path, char **file_content);
 
 void write_log(char *req, char *resp);
 
 int prepare_response(char *search, char *resp);
 
-char *root_path = "/Users/kunal/NetworkLab/public_html";
+char *root_path = "/Users/kunal/Desktop/NP-Project/website-downloader";
 
 int client_socket_ids[NUMBER_OF_CONNECTIONS];
 
@@ -213,14 +201,32 @@ int process_request(char *req, char *resp) {
     path_rel = extract_search_string(req);
     if (path_rel != NULL) {
         sprintf(search_query, "%s", path_rel);
+        if (strlen(path_rel) != 0)
+            free(path_rel);
     } else {
         search_query = NULL;
     }
     printf("Search requested: %s\n", search_query);
-    free(path_rel);
 
     // preparing response to be sent
     return prepare_response(search_query, resp);
+}
+
+int read_file(char *path, char **content) {
+    long input_file_size = -1;
+    FILE *input_file;
+
+    if ((input_file = fopen(path, "rb")) != 0) {
+        fseek(input_file, 0, SEEK_END);
+        input_file_size = ftell(input_file);
+        rewind(input_file);
+        *content = malloc((input_file_size+1) * (sizeof(char)));
+        fread(*content, sizeof(char), input_file_size, input_file);
+        (*content)[input_file_size] = '\0';
+        fclose(input_file);
+    }
+
+    return input_file_size;
 }
 
 /**
@@ -231,42 +237,23 @@ int process_request(char *req, char *resp) {
  */
 long prepare_response_html(char *search, char **file_content) {
     *file_content = (char *) malloc(10 * BUFSIZ * sizeof(char));
+    char path[BUFSIZ];
+    char *content;
     if (search == NULL) {
-        sprintf(*file_content, "<html><head><title>Search Results</title><head><body style=\""
-                "width: 600px;"
-                "margin: 50px auto;"
-                "font-family: monospace;\">"
-                "<form action=\"/index.html\" method=\"get\" style=\"font-size: 20px; margin-bottom: 20px;\">\n"
-                "  Search: <input type=\"text\" name=\"search_query\" style=\"font-size: 12px;\n"
-                "    line-height: 24px;\n"
-                "    width: 300px;\n"
-                "    padding-left: 10px;\" value=\"%s\">"
-                "  <button type=\"submit\" style=\"padding: 7px;\n"
-                "    vertical-align: top;\n"
-                "    background: #fff;\n"
-                "    border: 1px #999 dashed;\n"
-                "    cursor: pointer;\">Submit</button>\n"
-                "</form>", "");
+        sprintf(path, "%s/%s", root_path, "/partials/_index.html");
+        read_file(path, &content);
+        sprintf(*file_content, content, "");
+        free(content);
         return strlen(*file_content);
     }
-    sprintf(*file_content, "<html><head><title>Search Results</title><head><body style=\""
-            "width: 600px;"
-            "margin: 50px auto;"
-            "font-family: monospace;\">"
-            "<form action=\"/index.html\" method=\"get\" style=\"font-size: 20px; margin-bottom: 20px;\">\n"
-            "  Search: <input type=\"text\" name=\"search_query\" style=\"font-size: 12px;\n"
-            "    line-height: 24px;\n"
-            "    width: 300px;\n"
-            "    padding-left: 10px;\" value=\"%s\">"
-            "  <button type=\"submit\" style=\"padding: 7px;\n"
-            "    vertical-align: top;\n"
-            "    background: #fff;\n"
-            "    border: 1px #999 dashed;\n"
-            "    cursor: pointer;\">Submit</button>\n"
-            "</form>", search);
+
+    sprintf(path, "%s/%s", root_path, "/partials/_header.html");
+    read_file(path, &content);
+    sprintf(*file_content, content, search);
 
     if (strlen(search) == 0) {
         sprintf(*file_content, "%s<p>No results found.</p>", *file_content);
+        free(content);
         return strlen(*file_content);
     }
 
@@ -278,10 +265,15 @@ long prepare_response_html(char *search, char **file_content) {
         sprintf(*file_content, "%s<p>No results found.</p>", *file_content);
     }
     while ((row = mysql_fetch_row(result)) != NULL) {
-        sprintf(*file_content, "%s<h3><a  href=\"%s\"><b>%s</b></a></h3>", *file_content, row[1], row[1]);
+        sprintf(*file_content, "%s<div class=\"result-container\">"
+                               "<h3><a href=\"%s\"><b>%s</b></a></h3>",
+                *file_content, row[1], row[1]);
         sprintf(*file_content, "%s<p>%s</p>", *file_content, row[2]);
     }
-    sprintf(*file_content, "%s</body></html>", *file_content);
+    sprintf(path, "%s/%s", root_path, "/partials/_footer.html");
+    read_file(path, &content);
+    free(content);
+
     mysql_free_result(result);
     mysql_close(connection);
     return strlen(*file_content);
