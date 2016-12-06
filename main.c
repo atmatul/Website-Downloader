@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
 
     MYSQL* connection = mysql_init(NULL);
     db_connect(connection);
+
     db_reset(connection);
     db_insert_link(connection, config.page);
     int id = 1;
@@ -57,7 +58,7 @@ int main(int argc, char* argv[]) {
                     db_insert_title(connection, title, id);
                     free(title);
                 }
-                link_extractor(connection, pagelink, content);
+                link_extractor(connection, id, pagelink, content);
                 tags_extractor(connection, id, content);
 //                description_extractor(connection, id, content);
             }

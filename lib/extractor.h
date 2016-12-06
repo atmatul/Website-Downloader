@@ -231,7 +231,7 @@ void tags_extractor(MYSQL *connection, int id, const char *markup) {
 }
 
 
-void regex_link_extractor(MYSQL *connection, const char *regex, const char *url, const char *markup) {
+void regex_link_extractor(MYSQL *connection, int id, const char *regex, const char *url, const char *markup) {
     char table[256] = {0};
     int i = 0;
     for (i = 0; i < 256; i++) {
@@ -256,14 +256,14 @@ void regex_link_extractor(MYSQL *connection, const char *regex, const char *url,
                 sprintf(sanitized_link, "%s%s", current_dir, subpat);
                 if (!validate_link(&sanitized_link)) {
                     encoded_link = urlencode(sanitized_link, table);
-                    db_insert_unique_link(connection, encoded_link);
+                    db_insert_unique_link(connection, id, encoded_link);
                     free(encoded_link);
                 }
                 free(sanitized_link);
             } else {
                 if (!validate_link(&subpat)) {
                     encoded_link = urlencode(subpat, table);
-                    db_insert_unique_link(connection, encoded_link);
+                    db_insert_unique_link(connection, id, encoded_link);
                     free(encoded_link);
                 }
             }
@@ -277,11 +277,11 @@ void regex_link_extractor(MYSQL *connection, const char *regex, const char *url,
     }
 }
 
-void link_extractor(MYSQL *connection, const char *url, const char *markup) {
+void link_extractor(MYSQL *connection, int id, const char *url, const char *markup) {
     static const char *href_regex = "href=\"([^'\"<>]+)\"";
     static const char *src_regex = "src=\"([^'\"<>]+)\"";
-    regex_link_extractor(connection, href_regex, url, markup);
-    regex_link_extractor(connection, src_regex, url, markup);
+    regex_link_extractor(connection, id, href_regex, url, markup);
+    regex_link_extractor(connection, id, src_regex, url, markup);
 }
 
 #endif //WEBSITE_DOWNLOADER_EXTRACTOR_H

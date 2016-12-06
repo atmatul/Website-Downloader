@@ -14,6 +14,11 @@ void db_debug(MYSQL *connection) {
 
 int db_reset(MYSQL *connection) {
 
+    if (mysql_query(connection, "DROP TABLE Link_Maps;")) {
+        db_debug(connection);
+        notify_error("Unable to drop old table.\n");
+    }
+
     if (mysql_query(connection, "DROP TABLE Links;")) {
         db_debug(connection);
         notify_error("Unable to drop old table.\n");
@@ -29,10 +34,24 @@ int db_reset(MYSQL *connection) {
             "link varchar(1023) NOT NULL,"
             "title varchar(1023),"
             "occurence int DEFAULT 1,"
-            "tags text,"
+            "tags text CHARACTER SET 'latin1',"
             "PRIMARY KEY (id),"
             "UNIQUE (link),"
             "FULLTEXT (tags)"
+            ");")) {
+        db_debug(connection);
+        notify_error("Unable to re-create table.\n");
+    }
+
+    if (mysql_query(connection, "CREATE TABLE Link_Maps ("
+            "id int NOT NULL AUTO_INCREMENT,"
+            "from_id int NOT NULL,"
+            "to_id int NOT NULL,"
+            "times int DEFAULT 1,"
+            "PRIMARY KEY (id),"
+            "FOREIGN KEY (from_id) REFERENCES Links(id),"
+            "FOREIGN KEY (to_id) REFERENCES Links(id),"
+            "UNIQUE (from_id, to_id)"
             ");")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
@@ -75,7 +94,7 @@ int db_insert_link(MYSQL *connection, const char *url) {
     return EXIT_SUCCESS;
 }
 
-int db_add_tags(MYSQL* connection, int id, char* tags) {
+int db_add_tags(MYSQL *connection, int id, char *tags) {
     char query[100 * BUFSIZ];
 
     sprintf(query, "UPDATE Links "
@@ -89,7 +108,7 @@ int db_add_tags(MYSQL* connection, int id, char* tags) {
     return EXIT_SUCCESS;
 }
 
-int db_insert_title(MYSQL *connection, const char* title, int id) {
+int db_insert_title(MYSQL *connection, const char *title, int id) {
     char query[BUFSIZ];
 
     sprintf(query, "UPDATE Links"
@@ -103,7 +122,44 @@ int db_insert_title(MYSQL *connection, const char* title, int id) {
     return EXIT_SUCCESS;
 }
 
-int db_insert_unique_link(MYSQL *connection, const char *url) {
+int db_insert_link_map(MYSQL *connection, int from, int to) {
+    char query[BUFSIZ];
+
+    sprintf(query, "INSERT INTO Link_Maps (from_id, to_id) "
+            " VALUES ('%d', '%d') "
+            " ON DUPLICATE KEY UPDATE times = times + 1;", from, to);
+
+    if (mysql_query(connection, query)) {
+        db_debug(connection);
+        notify_error("Unable to insert into database.\n");
+    }
+    return EXIT_SUCCESS;
+}
+
+int db_fetch_link_id(MYSQL *connection, const char *url) {
+    char query[BUFSIZ];
+
+    sprintf(query, "SELECT id FROM Links WHERE link='%s' ORDER BY id DESC LIMIT 1;", url);
+
+    if (mysql_query(connection, query)) {
+        db_debug(connection);
+        notify_error("Unable to insert into database.\n");
+    }
+
+    int link_id = -1;
+    MYSQL_RES *result = mysql_store_result(connection);
+    if (mysql_num_rows(result) == 1) {
+        MYSQL_ROW link_row = mysql_fetch_row(result);
+        if (link_row[0]) {
+            link_id = atoi(link_row[0]);
+        }
+    }
+    mysql_free_result(result);
+
+    return link_id;
+}
+
+int db_insert_unique_link(MYSQL *connection, int id, const char *url) {
     char query[BUFSIZ];
 
     sprintf(query, "INSERT INTO Links (link, occurence) "
@@ -113,6 +169,11 @@ int db_insert_unique_link(MYSQL *connection, const char *url) {
     if (mysql_query(connection, query)) {
         db_debug(connection);
         notify_error("Unable to insert into database.\n");
+    } else {
+        int link_id = db_fetch_link_id(connection, url);
+        if (link_id > id) {
+            db_insert_link_map(connection, id, link_id);
+        }
     }
     return EXIT_SUCCESS;
 }
@@ -181,7 +242,7 @@ int db_fetch_link(MYSQL *connection, int id, char **link) {
     return EXIT_SUCCESS;
 }
 
-MYSQL_RES* db_search(MYSQL *connection, const char* search) {
+MYSQL_RES *db_search(MYSQL *connection, const char *search) {
     char query[BUFSIZ];
     sprintf(query, "SELECT occurence, title, link, CONCAT(LEFT(tags, 200), IF(LENGTH(tags)>200, \"...\", \"\"))"
             " FROM Links\n"
