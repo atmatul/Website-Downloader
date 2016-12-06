@@ -222,8 +222,11 @@ void tags_extractor(MYSQL *connection, int id, const char *markup) {
         j += i;
     }
     if (strlen(tags) > 0) {
-        char escaped_tags[BUFSIZ];
-        int len = mysql_real_escape_string(connection, escaped_tags, tags, strlen(tags));
+        char converted_to_ISO_tags[5 * BUFSIZ];
+        utf8_to_latin9(converted_to_ISO_tags, tags, strlen(tags));
+        char escaped_tags[5 * BUFSIZ];
+        int len = mysql_real_escape_string(connection, escaped_tags,
+                                           converted_to_ISO_tags, strlen(converted_to_ISO_tags));
         escaped_tags[len] = '\0';
         db_add_tags(connection, id, escaped_tags);
     }

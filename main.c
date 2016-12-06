@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
             sprintf(cmd_mkdir, "[ -d %s ] || mkdir -p %s", dirpath, dirpath);
             if (!system(cmd_mkdir)){
                 file_write(filepath, content, is_html(header), content_size);
-                printf("Wrote: %s\n", filepath);
+                printf("(#%d) Saving: %s\n", id, filepath);
             } else
                 notify_error("Unable to write to file.");
             free(ext_name);

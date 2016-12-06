@@ -9,7 +9,7 @@
 
 void db_debug(MYSQL *connection) {
     fprintf(stderr, "%s\n", mysql_error(connection));
-    mysql_close(connection);
+//    mysql_close(connection);
 }
 
 int db_reset(MYSQL *connection) {
@@ -89,7 +89,6 @@ int db_insert_link(MYSQL *connection, const char *url) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     }
     return EXIT_SUCCESS;
 }
@@ -103,7 +102,6 @@ int db_add_tags(MYSQL *connection, int id, char *tags) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     }
     return EXIT_SUCCESS;
 }
@@ -117,7 +115,6 @@ int db_insert_title(MYSQL *connection, const char *title, int id) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     }
     return EXIT_SUCCESS;
 }
@@ -131,7 +128,6 @@ int db_insert_link_map(MYSQL *connection, int from, int to) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     }
     return EXIT_SUCCESS;
 }
@@ -143,7 +139,6 @@ int db_fetch_link_id(MYSQL *connection, const char *url) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     }
 
     int link_id = -1;
@@ -168,7 +163,6 @@ int db_insert_unique_link(MYSQL *connection, int id, const char *url) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     } else {
         int link_id = db_fetch_link_id(connection, url);
         if (link_id > id) {
@@ -187,7 +181,6 @@ int db_insert_external_link(MYSQL *connection, const char *url) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     }
     return EXIT_SUCCESS;
 }
@@ -199,10 +192,9 @@ int db_fetch_next_id(MYSQL *connection, int id) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     }
 
-    int new_id = id + 1;
+    int new_id = -1;
 
     MYSQL_RES *result = mysql_store_result(connection);
     if (mysql_num_rows(result) == 1) {
@@ -224,7 +216,6 @@ int db_fetch_link(MYSQL *connection, int id, char **link) {
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
-        notify_error("Unable to insert into database.\n");
     }
 
     MYSQL_RES *result = mysql_store_result(connection);
