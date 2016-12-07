@@ -22,14 +22,14 @@ int main(int argc, char* argv[]) {
 
     char delete_command[BUFSIZ];
     sprintf(delete_command, "rm -rf %s/*", config.root_save_path);
-    system(delete_command);
 
     MYSQL* connection = mysql_init(NULL);
     db_connect(connection);
 
-    db_reset(connection);
-    db_insert_link(connection, config.page);
-    int id = 1;
+//    system(delete_command);
+//    db_reset(connection);
+//    db_insert_link(connection, config.page);
+    int id = 4931;
 
     while (1) {
         char *content, *header;
