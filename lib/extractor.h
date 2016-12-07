@@ -41,6 +41,15 @@ int is_html(const char *header) {
     }
 }
 
+int is_valid_dir_path(const char* path, int size) {
+    for (int i = 0; i < size; i++) {
+        if (path[i] == '.') {
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
 int extract_response_code(const char* header) {
     static const char *regex = "HTTP/1[^\\s]+ ([\\d]+)";
     struct slre_cap caps[2];
@@ -184,10 +193,6 @@ char *urlencode(char *url, char* table) {
     int i;
     char* enc = (char *) malloc(BUFSIZ * sizeof(char));
     memset(enc, 0, BUFSIZ);
-    for (i = 0; i < 256; i++) {
-        table[i] = isalnum(i) || i == '*' || i == '-' || i == '.' || i == '/' || i == ':' || i == '_' ? i : (i == ' ') ? '+' : 0;
-    }
-
     for (i = 0; *temp_url; temp_url++) {
         if (table[*temp_url]) {
             enc[i] = table[*temp_url];

@@ -6,6 +6,7 @@
 
 typedef struct {
     const char* root_save_path;
+    const char* invalid_save_path;
     char *host;
     char *page;
     char *root_path;
@@ -16,8 +17,10 @@ static int handler(void *user, const char *section, const char *name,
     configuration *pconfig = (configuration *) user;
 
 #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-    if (MATCH("storage", "location")) {
+    if (MATCH("storage", "save_location")) {
         pconfig->root_save_path = strdup(value);
+    } else if (MATCH("storage", "invalid_save_location")) {
+        pconfig->invalid_save_path = strdup(value);
     } else if (MATCH("server", "host")) {
         pconfig->host = strdup(value);
     } else if (MATCH("server", "start_page")) {

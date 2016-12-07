@@ -76,6 +76,9 @@ int main(int argc, char* argv[]) {
             char cmd_mkdir[BUFSIZ];
             char dirpath[BUFSIZ];
             sprintf(dirpath, "%.*s", (int)(strrchr(filepath, '/') - filepath), filepath);
+            if (is_valid_dir_path(dirpath, strlen(dirpath))) {
+                sprintf(dirpath, "%s", config.invalid_save_path);
+            }
             sprintf(cmd_mkdir, "[ -d %s ] || mkdir -p %s", dirpath, dirpath);
             if (!system(cmd_mkdir)){
                 file_write(filepath, content, is_html(header), content_size);

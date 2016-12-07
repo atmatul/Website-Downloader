@@ -10,7 +10,7 @@ void file_write(char *path, char *content, int ishtml, int content_size) {
             fprintf(log_file, "%.*s", content_size, content);
             fclose(log_file);
         } else {
-            printf("ERROR: Could not write to log file.\n");
+            printf("ERROR: Could not write to file. %s\n", path);
         }
     }
     else {
