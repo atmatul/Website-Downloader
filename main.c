@@ -5,8 +5,8 @@
 #include "lib/database.h"
 #include "lib/config.h"
 
-int main(int argc, char* argv[]) {
-    char* config_filename;
+int main(int argc, char *argv[]) {
+    char *config_filename;
     configuration config;
     if (argc > 1) {
         config_filename = argv[1];
@@ -23,18 +23,19 @@ int main(int argc, char* argv[]) {
     char delete_command[BUFSIZ];
     sprintf(delete_command, "rm -rf %s/*", config.root_save_path);
 
-    MYSQL* connection = mysql_init(NULL);
+    MYSQL *connection = mysql_init(NULL);
     db_connect(connection);
 
 //    system(delete_command);
 //    db_reset(connection);
 //    db_insert_link(connection, config.page);
-    int id = 4931;
+    int id = 37500;
 
     while (1) {
         char *content, *header;
         int content_size = 0;
         memset(pagelink, 0, strlen(pagelink));
+
         db_fetch_link(connection, id, &pagelink);
         char *url;
         url = (char *) malloc(BUFSIZ * sizeof(char));
@@ -45,15 +46,16 @@ int main(int argc, char* argv[]) {
         if (strlen(header) > 0) {
             int status_code = extract_response_code(header);
             while (status_code >= 300 && status_code < 400) {
-                char* redirect_page;
+                char *redirect_page;
                 redirect_page = extract_redirect_location(header, config.host);
                 if (redirect_page == NULL) break;
-                else memcpy(url, redirect_page, strlen(redirect_page));
+                else
+                    memcpy(url, redirect_page, strlen(redirect_page));
                 free(redirect_page);
                 content_size = fetch_url(config.host, url, &header, &content);
             }
             if (!is_html(header)) {
-                char* title = extract_title(content);
+                char *title = extract_title(content);
                 if (strlen(title) > 0) {
                     db_insert_title(connection, title, id);
                     free(title);
@@ -62,30 +64,11 @@ int main(int argc, char* argv[]) {
                 tags_extractor(connection, id, content);
 //                description_extractor(connection, id, content);
             }
-            char filepath[BUFSIZ];
-            char *ext_name;
-            ext_name = (char *) malloc(MAX_EXT_LENGTH * sizeof(char));
-
-            sprintf(filepath, "%s%s", config.root_save_path, pagelink);
-            if (filepath[strlen(filepath) - 1] == '/') {
-                sprintf(filepath, "%s%s", filepath, "index.html");
+            if (!file_save(config, pagelink, header, content, content_size)) {
+                printf("(#%d) Saving: %s\n", id, pagelink);
+            } else {
+                printf("Error: Unable to save file.\n");
             }
-            if (match_extension(filepath, &ext_name) == -1) {
-                sprintf(filepath, "%s%s", filepath, ".html");
-            }
-            char cmd_mkdir[BUFSIZ];
-            char dirpath[BUFSIZ];
-            sprintf(dirpath, "%.*s", (int)(strrchr(filepath, '/') - filepath), filepath);
-            if (is_valid_dir_path(dirpath, strlen(dirpath))) {
-                sprintf(dirpath, "%s", config.invalid_save_path);
-            }
-            sprintf(cmd_mkdir, "[ -d %s ] || mkdir -p %s", dirpath, dirpath);
-            if (!system(cmd_mkdir)){
-                file_write(filepath, content, is_html(header), content_size);
-                printf("(#%d) Saving: %s\n", id, filepath);
-            } else
-                notify_error("Unable to write to file.");
-            free(ext_name);
         }
         free(content);
         free(header);
