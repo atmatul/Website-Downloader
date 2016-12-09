@@ -9,6 +9,8 @@
 
 #include "includes.h"
 #include "extractor.h"
+#include "file_saver.h"
+#include "mthread.h"
 
 #define PORT 80
 #define USERAGENT "NPLAB 1.0"
@@ -116,8 +118,8 @@ int fetch_url(char *host, char* page, char **header, char **content) {
         }
         memset(buffer, 0, result_id);
     }
-    if (result_id < 0) {
-        notify_error("Error receiving data");
+    if (pagesize == 0) {
+        printf("ERROR: Receiving data: %s\n", page);
     }
 
     if (*header != NULL && !is_html(*header)) {
@@ -130,6 +132,38 @@ int fetch_url(char *host, char* page, char **header, char **content) {
     free(ip);
     close(socket_id);
     return pagesize;
+}
+
+void *fetch_resource_url(void *data) {
+    thread_data *tdata = (thread_data *) data;
+    char *header, *content;
+    int content_size = fetch_url(tdata->config.host, tdata->url, &header, &content);
+    if (strlen(header) > 0) {
+        int status_code = extract_response_code(header);
+        while (status_code >= 300 && status_code < 400) {
+            char *redirect_page;
+            redirect_page = extract_redirect_location(header, tdata->config.host);
+            if (redirect_page == NULL) break;
+            else
+                memcpy(tdata->url, redirect_page, strlen(redirect_page));
+            free(redirect_page);
+            content_size = fetch_url(tdata->config.host, tdata->url, &header, &content);
+        }
+        if (is_html(header)) {
+            if (!file_save(tdata->config, tdata->pagelink, header, content, content_size)) {
+                printf("(#%d) Saving: %s\n", tdata->id, tdata->pagelink);
+            } else {
+                printf("Error: Unable to save file.\n");
+            }
+        }
+    }
+
+    free(tdata->url);
+    free(tdata->pagelink);
+    free(header);
+    free(content);
+    free(tdata);
+    return NULL;
 }
 
 #endif //WEBSITE_DOWNLOADER_DOWNLOADER_H

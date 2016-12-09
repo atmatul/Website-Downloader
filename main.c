@@ -4,6 +4,7 @@
 #include "lib/file_saver.h"
 #include "lib/database.h"
 #include "lib/config.h"
+#include "lib/mthread.h"
 
 int main(int argc, char *argv[]) {
     char *config_filename;
@@ -17,6 +18,8 @@ int main(int argc, char *argv[]) {
         notify_error("Unable to load config file.");
     }
 
+    pthread_t thread_pool[MAX_THREAD_NUM] = { NULL };
+
     char *pagelink;
     pagelink = (char *) malloc(BUFSIZ * sizeof(char));
 
@@ -26,11 +29,10 @@ int main(int argc, char *argv[]) {
     MYSQL *connection = mysql_init(NULL);
     db_connect(connection);
 
-//    system(delete_command);
-//    db_reset(connection);
-//    db_insert_link(connection, config.page);
-    int id = 37500;
-
+    system(delete_command);
+    db_reset(connection);
+    db_insert_link(connection, config.page);
+    int id = 1;
     while (1) {
         char *content, *header;
         int content_size = 0;
@@ -42,6 +44,24 @@ int main(int argc, char *argv[]) {
         if (pagelink == NULL) break;
         memcpy(url, pagelink, strlen(pagelink));
         url[strlen(pagelink)] = '\0';
+        char* ext_name = (char *) malloc(MAX_EXT_LENGTH * sizeof(char));
+        if (match_extension(url, &ext_name) != 0) {
+            int tid_index;
+            if ((tid_index = is_available(thread_pool)) >= 0) {
+                thread_data *tdata = (thread_data *) malloc(sizeof(thread_data));
+                tdata->id = id;
+                tdata->config = config;
+                tdata->url = (char *) malloc((strlen(url) + 1) * sizeof(char));
+                strcpy(tdata->url, url);
+                tdata->pagelink = (char *) malloc((strlen(pagelink) + 1) * sizeof(char));
+                strcpy(tdata->pagelink, pagelink);
+                int ret = pthread_create(&(thread_pool[tid_index]), NULL, fetch_resource_url, tdata);
+                if (!ret) {
+                    id = db_fetch_next_id(connection, id);
+                    continue;
+                }
+            }
+        }
         content_size = fetch_url(config.host, url, &header, &content);
         if (strlen(header) > 0) {
             int status_code = extract_response_code(header);
@@ -72,6 +92,16 @@ int main(int argc, char *argv[]) {
         }
         free(content);
         free(header);
+
+        for (int i = 0; i < MAX_THREAD_NUM; i++) {
+            if (thread_pool[i] != NULL) {
+                void *ret_val;
+                int ret = pthread_join(thread_pool[i], ret_val);
+                if (!ret) {
+                    thread_pool[i] = NULL;
+                }
+            }
+        }
         id = db_fetch_next_id(connection, id);
     }
 

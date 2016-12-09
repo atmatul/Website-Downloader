@@ -1,6 +1,8 @@
 #ifndef WEBSITE_DOWNLOADER_UTIL_H
 #define WEBSITE_DOWNLOADER_UTIL_H
 
+#include "config.h"
+
 #define NUMBER_OF_MIMETYPES 8
 #define MAX_EXT_LENGTH 6
 

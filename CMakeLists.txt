@@ -26,7 +26,7 @@ set(SOURCE_FILES lib/slre/slre.h
         lib/ini/ini.c
         lib/config.h)
 
-add_executable(fetcher main.c ${SOURCE_FILES})
+add_executable(fetcher main.c ${SOURCE_FILES} lib/mthread.h)
 add_executable(server server.c ${SOURCE_FILES})
 target_include_directories(fetcher PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
 target_link_libraries(fetcher PRIVATE ${LIBMYSQLCLIENT_LIBRARIES})
