@@ -149,12 +149,27 @@ void *fetch_resource_url(void *data) {
             free(redirect_page);
             content_size = fetch_url(tdata->config.host, tdata->url, &header, &content);
         }
-        if (is_html(header)) {
-            if (!file_save(tdata->config, tdata->pagelink, header, content, content_size)) {
-                printf("(#%d) Saving: %s\n", tdata->id, tdata->pagelink);
-            } else {
-                printf("Error: Unable to save file.\n");
+        if (!is_html(header)) {
+            char *title = extract_title(content);
+            if (strlen(title) > 0) {
+                wait_on_condition(tdata->thread_pool, tdata->db_singleton, tdata->condition, tdata->lock);
+                db_insert_title(tdata->connection, title, tdata->id);
+                free_resource(tdata->db_singleton, tdata->condition, tdata->lock);
+                free(title);
             }
+            wait_on_condition(tdata->thread_pool, tdata->db_singleton, tdata->condition, tdata->lock);
+            link_extractor(tdata->connection, tdata->id, tdata->pagelink, content);
+            free_resource(tdata->db_singleton, tdata->condition, tdata->lock);
+
+            wait_on_condition(tdata->thread_pool, tdata->db_singleton, tdata->condition, tdata->lock);
+            tags_extractor(tdata->connection, tdata->id, content);
+            free_resource(tdata->db_singleton, tdata->condition, tdata->lock);
+//                description_extractor(connection, id, content);
+        }
+        if (!file_save(tdata->config, tdata->pagelink, header, content, content_size)) {
+            printf("(#%d) Saving: %s\n", tdata->id, tdata->pagelink);
+        } else {
+            printf("Error: Unable to save file.\n");
         }
     }
 

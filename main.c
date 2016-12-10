@@ -18,7 +18,18 @@ int main(int argc, char *argv[]) {
         notify_error("Unable to load config file.");
     }
 
-    pthread_t thread_pool[MAX_THREAD_NUM] = { NULL };
+    pthread_t thread_pool[MAX_THREAD_NUM] = {NULL};
+
+    int db_singleton_val = 0;
+
+    pthread_mutex_t lock;
+    pthread_cond_t condition;
+    if (pthread_mutex_init(&lock, NULL)) {
+        notify_error("Unable to initialize mutex.\n");
+    }
+    if (pthread_cond_init(&condition, NULL)) {
+        notify_error("Unable to initialize condition.\n");
+    }
 
     char *pagelink;
     pagelink = (char *) malloc(BUFSIZ * sizeof(char));
@@ -33,6 +44,8 @@ int main(int argc, char *argv[]) {
     db_reset(connection);
     db_insert_link(connection, config.page);
     int id = 1;
+    int init = 1;
+
     while (1) {
         char *content, *header;
         int content_size = 0;
@@ -44,24 +57,31 @@ int main(int argc, char *argv[]) {
         if (pagelink == NULL) break;
         memcpy(url, pagelink, strlen(pagelink));
         url[strlen(pagelink)] = '\0';
-        char* ext_name = (char *) malloc(MAX_EXT_LENGTH * sizeof(char));
-        if (match_extension(url, &ext_name) != 0) {
-            int tid_index;
-            if ((tid_index = is_available(thread_pool)) >= 0) {
-                thread_data *tdata = (thread_data *) malloc(sizeof(thread_data));
-                tdata->id = id;
-                tdata->config = config;
-                tdata->url = (char *) malloc((strlen(url) + 1) * sizeof(char));
-                strcpy(tdata->url, url);
-                tdata->pagelink = (char *) malloc((strlen(pagelink) + 1) * sizeof(char));
-                strcpy(tdata->pagelink, pagelink);
-                int ret = pthread_create(&(thread_pool[tid_index]), NULL, fetch_resource_url, tdata);
-                if (!ret) {
-                    id = db_fetch_next_id(connection, id);
-                    continue;
-                }
+
+        int tid_index;
+        if (!init && (tid_index = is_available(thread_pool)) >= 0) {
+
+            thread_data *tdata = (thread_data *) malloc(sizeof(thread_data));
+            tdata->id = id;
+            tdata->config = config;
+            tdata->url = (char *) malloc((strlen(url) + 1) * sizeof(char));
+            strcpy(tdata->url, url);
+            tdata->pagelink = (char *) malloc((strlen(pagelink) + 1) * sizeof(char));
+            strcpy(tdata->pagelink, pagelink);
+            tdata->connection = connection;
+            tdata->lock = &lock;
+            tdata->condition = &condition;
+            tdata->db_singleton = &db_singleton_val;
+            tdata->thread_pool = thread_pool;
+
+            int ret = pthread_create(&(thread_pool[tid_index]), NULL, fetch_resource_url, tdata);
+            if (!ret) {
+                id = db_fetch_next_id(connection, id);
+                continue;
             }
         }
+
+        if (init) init = 0;
         content_size = fetch_url(config.host, url, &header, &content);
         if (strlen(header) > 0) {
             int status_code = extract_response_code(header);
@@ -77,11 +97,17 @@ int main(int argc, char *argv[]) {
             if (!is_html(header)) {
                 char *title = extract_title(content);
                 if (strlen(title) > 0) {
+                    wait_on_condition(thread_pool, &db_singleton_val, &condition, &lock);
                     db_insert_title(connection, title, id);
+                    free_resource(&db_singleton_val, &condition, &lock);
                     free(title);
                 }
+                wait_on_condition(thread_pool, &db_singleton_val, &condition, &lock);
                 link_extractor(connection, id, pagelink, content);
+                free_resource(&db_singleton_val, &condition, &lock);
+                wait_on_condition(thread_pool, &db_singleton_val, &condition, &lock);
                 tags_extractor(connection, id, content);
+                free_resource(&db_singleton_val, &condition, &lock);
 //                description_extractor(connection, id, content);
             }
             if (!file_save(config, pagelink, header, content, content_size)) {
@@ -106,6 +132,9 @@ int main(int argc, char *argv[]) {
     }
 
     free(pagelink);
+    pthread_cond_destroy(&condition);
+    pthread_mutex_destroy(&lock);
+
     mysql_close(connection);
     return 0;
 }
