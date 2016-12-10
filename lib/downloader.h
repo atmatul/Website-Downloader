@@ -164,7 +164,15 @@ void *fetch_resource_url(void *data) {
 //                description_extractor(connection, id, content);
         }
         if (!file_save(config, tdata->pagelink, header, content, content_size)) {
-            printf("(#%d) Saving: %s\n", tdata->id, tdata->pagelink);
+            if (content_size < 1024) {
+                printf("(#%d) " ANSI_COLOR_YELLOW "\t%d B\t" ANSI_COLOR_RESET
+                               ANSI_COLOR_BLUE "Saving: %s\n" ANSI_COLOR_RESET,
+                       tdata->id, content_size, tdata->pagelink);
+            } else {
+                printf("(#%d) " ANSI_COLOR_YELLOW "\t%d KB\t" ANSI_COLOR_RESET
+                               ANSI_COLOR_BLUE "Saving: %s\n" ANSI_COLOR_RESET,
+                       tdata->id, content_size / 1024, tdata->pagelink);
+            }
         } else {
             printf("Error: Unable to save file.\n");
         }

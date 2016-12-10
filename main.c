@@ -74,12 +74,14 @@ int main(int argc, char *argv[]) {
                         id = db_fetch_next_id(connection, init_id);
                         if (id == -1) {
                             waiting++;
-                            printf("Couldn't get a valid id from db. Waiting for %d sec.\n", waiting);
+                            printf(ANSI_COLOR_YELLOW "Couldn't get a valid id from db. Waiting for %d sec.\n"
+                                           ANSI_COLOR_RESET, waiting);
                             sleep(waiting);
                         } else {
                             break;
                         }
                     }
+
                     init = 0;
                 } else {
                     id = db_fetch_next_id(connection, id);
