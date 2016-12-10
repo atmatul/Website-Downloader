@@ -44,11 +44,9 @@ int main(int argc, char *argv[]) {
     db_reset(connection);
     db_insert_link(connection, config.page);
     int id = 1;
-    int init = 1;
+    int waiting = 0, init = 1;
 
     while (1) {
-        char *content, *header;
-        int content_size = 0;
         memset(pagelink, 0, strlen(pagelink));
 
         db_fetch_link(connection, id, &pagelink);
@@ -59,8 +57,7 @@ int main(int argc, char *argv[]) {
         url[strlen(pagelink)] = '\0';
 
         int tid_index;
-        if (!init && (tid_index = is_available(thread_pool)) >= 0) {
-
+        if ((tid_index = is_available(thread_pool)) >= 0) {
             thread_data *tdata = (thread_data *) malloc(sizeof(thread_data));
             tdata->id = id;
             tdata->config = config;
@@ -76,49 +73,25 @@ int main(int argc, char *argv[]) {
 
             int ret = pthread_create(&(thread_pool[tid_index]), NULL, fetch_resource_url, tdata);
             if (!ret) {
-                id = db_fetch_next_id(connection, id);
+                if (init) {
+                    int init_id = id;
+                    while (waiting < 5) {
+                        id = db_fetch_next_id(connection, init_id);
+                        if (id == -1) {
+                            waiting++;
+                            printf("Couldn't get a valid id from db. Waiting for %d sec.\n", waiting);
+                            sleep(waiting);
+                        } else {
+                            break;
+                        }
+                    }
+                    init = 0;
+                } else {
+                    id = db_fetch_next_id(connection, id);
+                }
                 continue;
             }
         }
-
-        if (init) init = 0;
-        content_size = fetch_url(config.host, url, &header, &content);
-        if (strlen(header) > 0) {
-            int status_code = extract_response_code(header);
-            while (status_code >= 300 && status_code < 400) {
-                char *redirect_page;
-                redirect_page = extract_redirect_location(header, config.host);
-                if (redirect_page == NULL) break;
-                else
-                    memcpy(url, redirect_page, strlen(redirect_page));
-                free(redirect_page);
-                content_size = fetch_url(config.host, url, &header, &content);
-            }
-            if (!is_html(header)) {
-                char *title = extract_title(content);
-                if (strlen(title) > 0) {
-                    wait_on_condition(thread_pool, &db_singleton_val, &condition, &lock);
-                    db_insert_title(connection, title, id);
-                    free_resource(&db_singleton_val, &condition, &lock);
-                    free(title);
-                }
-                wait_on_condition(thread_pool, &db_singleton_val, &condition, &lock);
-                link_extractor(connection, id, pagelink, content);
-                free_resource(&db_singleton_val, &condition, &lock);
-                wait_on_condition(thread_pool, &db_singleton_val, &condition, &lock);
-                tags_extractor(connection, id, content);
-                free_resource(&db_singleton_val, &condition, &lock);
-//                description_extractor(connection, id, content);
-            }
-            if (!file_save(config, pagelink, header, content, content_size)) {
-                printf("(#%d) Saving: %s\n", id, pagelink);
-            } else {
-                printf("Error: Unable to save file.\n");
-            }
-        }
-        free(content);
-        free(header);
-
         for (int i = 0; i < MAX_THREAD_NUM; i++) {
             if (thread_pool[i] != NULL) {
                 void *ret_val;
@@ -128,7 +101,6 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        id = db_fetch_next_id(connection, id);
     }
 
     free(pagelink);
