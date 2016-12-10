@@ -18,6 +18,9 @@
 #include <mysql.h>
 #include <math.h>
 
+#include "config.h"
 #include "util.h"
+
+configuration config;
 
 #endif //WEBSITE_DOWNLOADER_INCLUDES_H_H

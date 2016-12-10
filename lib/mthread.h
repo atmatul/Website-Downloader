@@ -3,11 +3,10 @@
 #include <pthread.h>
 #include "config.h"
 
-#define MAX_THREAD_NUM 4
+#define MAX_THREAD_NUM 8
 
 struct sthread_data {
     int id;
-    configuration config;
     char* url;
     char* pagelink;
     MYSQL* connection;

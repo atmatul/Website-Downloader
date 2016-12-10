@@ -2,14 +2,10 @@
 #define WEBSITE_DOWNLOADER_DATABASE_H
 
 #include "includes.h"
-
-#define DATABASE_HOST "localhost"
-#define DATABASE_UNAME "root"
-#define DATABASE_PASSWORD ""
+#include "config.h"
 
 void db_debug(MYSQL *connection) {
     fprintf(stderr, "%s\n", mysql_error(connection));
-//    mysql_close(connection);
 }
 
 int db_reset(MYSQL *connection) {
@@ -73,9 +69,10 @@ int db_reset(MYSQL *connection) {
 }
 
 int db_connect(MYSQL *connection) {
-    if (mysql_real_connect(connection, DATABASE_HOST,
-                           DATABASE_UNAME, DATABASE_PASSWORD,
-                           "network_lab", 0, NULL, 0) == NULL) {
+    extern configuration config;
+    if (mysql_real_connect(connection, config.db_host,
+                           config.db_username, config.db_password,
+                           config.db_name, 0, NULL, 0) == NULL) {
         db_debug(connection);
         notify_error("Unable to connect to database.\n");
     }

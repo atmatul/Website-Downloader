@@ -11,6 +11,9 @@ foreach(FLAG ${LIBMYSQLCLIENT_CFLAGS_OTHER})
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")
 endforeach()
 
+FIND_PACKAGE(OPENSSL)
+
+include_directories(${OPENSSL_INCLUDE_DIR})
 link_directories(${LIBMYSQLCLIENT_LIBRARY_DIRS})
 
 set(SOURCE_FILES lib/slre/slre.h
@@ -24,11 +27,15 @@ set(SOURCE_FILES lib/slre/slre.h
         lib/database.h
         lib/ini/ini.h
         lib/ini/ini.c
-        lib/config.h)
+        lib/config.h
+        lib/mthread.h)
 
-add_executable(fetcher main.c ${SOURCE_FILES} lib/mthread.h)
-add_executable(server server.c ${SOURCE_FILES})
+add_executable(fetcher main.c ${SOURCE_FILES})
 target_include_directories(fetcher PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
-target_link_libraries(fetcher PRIVATE ${LIBMYSQLCLIENT_LIBRARIES})
+target_include_directories(fetcher PRIVATE ${OPENSSL_INCLUDE_DIR})
+
+target_link_libraries(fetcher PRIVATE ${LIBMYSQLCLIENT_LIBRARIES} ${OPENSSL_LIBRARIES})
+
+add_executable(server server.c ${SOURCE_FILES})
 target_include_directories(server PRIVATE ${LIBMYSQLCLIENT_INCLUDE_DIRS})
 target_link_libraries(server PRIVATE ${LIBMYSQLCLIENT_LIBRARIES})

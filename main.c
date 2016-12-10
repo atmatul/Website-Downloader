@@ -1,14 +1,10 @@
 #include "lib/includes.h"
 #include "lib/extractor.h"
 #include "lib/downloader.h"
-#include "lib/file_saver.h"
-#include "lib/database.h"
-#include "lib/config.h"
-#include "lib/mthread.h"
 
 int main(int argc, char *argv[]) {
     char *config_filename;
-    configuration config;
+    extern configuration config;
     if (argc > 1) {
         config_filename = argv[1];
     } else {
@@ -60,7 +56,6 @@ int main(int argc, char *argv[]) {
         if ((tid_index = is_available(thread_pool)) >= 0) {
             thread_data *tdata = (thread_data *) malloc(sizeof(thread_data));
             tdata->id = id;
-            tdata->config = config;
             tdata->url = (char *) malloc((strlen(url) + 1) * sizeof(char));
             strcpy(tdata->url, url);
             tdata->pagelink = (char *) malloc((strlen(pagelink) + 1) * sizeof(char));

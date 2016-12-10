@@ -1,18 +1,12 @@
 #ifndef WEBSITE_DOWNLOADER_DOWNLOADER_H
 #define WEBSITE_DOWNLOADER_DOWNLOADER_H
 
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-
 #include "includes.h"
 #include "extractor.h"
 #include "file_saver.h"
 #include "mthread.h"
+#include "config.h"
 
-#define PORT 80
 #define USERAGENT "NPLAB 1.0"
 
 int create_socket() {
@@ -51,7 +45,9 @@ char *build_get_query(char *host, char *page) {
     return query;
 }
 
-int fetch_url(char *host, char* page, char **header, char **content) {
+int fetch_url(char* page, char **header, char **content) {
+    extern configuration config;
+    char *host = config.host;
     struct sockaddr_in *server_addr;
     int socket_id;
     int result_id;
@@ -71,7 +67,7 @@ int fetch_url(char *host, char* page, char **header, char **content) {
         notify_error("IP address invalid.");
     }
 
-    server_addr->sin_port = htons(PORT);
+    server_addr->sin_port = htons(config.port);
 
     if (connect(socket_id, (struct sockaddr *) server_addr, sizeof(struct sockaddr)) < 0) {
         notify_error("Could not connect");
@@ -135,19 +131,20 @@ int fetch_url(char *host, char* page, char **header, char **content) {
 }
 
 void *fetch_resource_url(void *data) {
+    extern configuration config;
     thread_data *tdata = (thread_data *) data;
     char *header, *content;
-    int content_size = fetch_url(tdata->config.host, tdata->url, &header, &content);
+    int content_size = fetch_url(tdata->url, &header, &content);
     if (strlen(header) > 0) {
         int status_code = extract_response_code(header);
         while (status_code >= 300 && status_code < 400) {
             char *redirect_page;
-            redirect_page = extract_redirect_location(header, tdata->config.host);
+            redirect_page = extract_redirect_location(header, config.host);
             if (redirect_page == NULL) break;
             else
                 memcpy(tdata->url, redirect_page, strlen(redirect_page));
             free(redirect_page);
-            content_size = fetch_url(tdata->config.host, tdata->url, &header, &content);
+            content_size = fetch_url(tdata->url, &header, &content);
         }
         if (!is_html(header)) {
             char *title = extract_title(content);
@@ -166,7 +163,7 @@ void *fetch_resource_url(void *data) {
             free_resource(tdata->db_singleton, tdata->condition, tdata->lock);
 //                description_extractor(connection, id, content);
         }
-        if (!file_save(tdata->config, tdata->pagelink, header, content, content_size)) {
+        if (!file_save(config, tdata->pagelink, header, content, content_size)) {
             printf("(#%d) Saving: %s\n", tdata->id, tdata->pagelink);
         } else {
             printf("Error: Unable to save file.\n");
