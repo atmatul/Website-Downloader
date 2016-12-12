@@ -6,6 +6,7 @@
 #include "file_saver.h"
 #include "mthread.h"
 #include "config.h"
+#include <openssl/ssl.h>
 
 #define USERAGENT "NPLAB 1.0"
 
@@ -19,7 +20,7 @@ int create_socket(struct addrinfo *server_info) {
     return socket_id;
 }
 
-struct addrinfo* resolve_ip_address(char *host, char *port) {
+struct addrinfo *resolve_ip_address(char *host, char *port) {
     struct addrinfo hints, *server_info;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
@@ -46,7 +47,99 @@ char *build_get_query(char *host, char *page) {
     return query;
 }
 
-int fetch_url(char* page, char **header, char **content) {
+int fetch_url_https(char *page, char **header, char **content) {
+    extern configuration config;
+    char *host = config.host;
+    int result_id;
+    char *http_header;
+    char buffer[BUFSIZ + 1];
+    char hostport[BUFSIZ];
+    BIO *bio;
+    SSL *ssl;
+    SSL_CTX *ctx;
+
+    ctx = SSL_CTX_new(SSLv23_client_method());
+
+    if (ctx == NULL) {
+        notify_error("Error loading trust store\n");
+    }
+
+    http_header = build_get_query(host, page);
+
+    if (!SSL_CTX_load_verify_locations(ctx, config.cert_location, NULL)) {
+        SSL_CTX_free(ctx);
+        notify_error("Error loading trust store\n");
+    }
+
+    bio = BIO_new_ssl_connect(ctx);
+
+    BIO_get_ssl(bio, &ssl);
+    SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
+
+    sprintf(hostport, "%s:https", host);
+    BIO_set_conn_hostname(bio, hostport);
+
+    if (BIO_do_connect(bio) <= 0) {
+        BIO_free_all(bio);
+        SSL_CTX_free(ctx);
+        notify_error("Error attempting to connect\n");
+    }
+
+    if (SSL_get_verify_result(ssl) != X509_V_OK) {
+        BIO_free_all(bio);
+        SSL_CTX_free(ctx);
+        fprintf(stderr, "Certificate verification error: %li\n", SSL_get_verify_result(ssl));
+        exit(EXIT_FAILURE);
+    }
+
+    BIO_write(bio, http_header, strlen(http_header));
+
+    // Receiving the page
+    memset(buffer, 0, BUFSIZ + 1);
+    int htmlstart = 0;
+    int pagesize = 0;
+    char *htmlcontent;
+    while ((result_id = BIO_read(bio, buffer, BUFSIZ)) > 0) {
+        if (htmlstart == 0) {
+            htmlcontent = strstr(buffer, "\r\n\r\n");
+            if (htmlcontent != NULL) {
+                htmlstart = 1;
+                htmlcontent += 4;
+                int header_size = (int) (htmlcontent - buffer);
+                *header = (char *) malloc((header_size + 1) * sizeof(char));
+                memcpy(*header, buffer, header_size);
+                *(*header + header_size) = '\0';
+                pagesize += result_id - header_size;
+                *content = (char *) malloc(pagesize * sizeof(char));
+                memset(*content, 0, pagesize);
+                memcpy(*content, htmlcontent, pagesize);
+            }
+        } else {
+            htmlcontent = buffer;
+            *content = (char *) realloc(*content, (pagesize + result_id) * sizeof(char));
+            memset((*content + pagesize), 0, result_id);
+            memcpy((*content + pagesize), htmlcontent, result_id);
+            pagesize += result_id;
+        }
+        memset(buffer, 0, result_id);
+    }
+    if (pagesize == 0) {
+        printf("ERROR: Receiving data: %s\n", page);
+    }
+
+    if (*header != NULL && !is_html(*header)) {
+        *content = (char *) realloc(*content, (pagesize + 1) * sizeof(char));
+        memset((*content + pagesize), '\0', 1);
+    }
+
+    BIO_free_all(bio);
+    SSL_CTX_free(ctx);
+
+    return pagesize;
+}
+
+
+int fetch_url(char *page, char **header, char **content) {
     extern configuration config;
     char *host = config.host;
     char *port = config.port;
@@ -75,9 +168,8 @@ int fetch_url(char* page, char **header, char **content) {
         sent += result_id;
     }
 
-    int ishtml;
     // Receiving the page
-    memset(buffer, 0, sizeof(buffer));
+    memset(buffer, 0, BUFSIZ + 1);
     int htmlstart = 0;
     int pagesize = 0;
     char *htmlcontent;
@@ -99,8 +191,8 @@ int fetch_url(char* page, char **header, char **content) {
         } else {
             htmlcontent = buffer;
             *content = (char *) realloc(*content, (pagesize + result_id) * sizeof(char));
-            memset((*content+pagesize), 0, result_id);
-            memcpy((*content+pagesize), htmlcontent, result_id);
+            memset((*content + pagesize), 0, result_id);
+            memcpy((*content + pagesize), htmlcontent, result_id);
             pagesize += result_id;
         }
         memset(buffer, 0, result_id);
@@ -111,7 +203,7 @@ int fetch_url(char* page, char **header, char **content) {
 
     if (*header != NULL && !is_html(*header)) {
         *content = (char *) realloc(*content, (pagesize + 1) * sizeof(char));
-        memset((*content+pagesize), '\0', 1);
+        memset((*content + pagesize), '\0', 1);
     }
 
     free(http_header);
@@ -124,7 +216,7 @@ void *fetch_resource_url(void *data) {
     extern configuration config;
     thread_data *tdata = (thread_data *) data;
     char *header, *content;
-    int content_size = fetch_url(tdata->url, &header, &content);
+    int content_size = fetch_url_https(tdata->url, &header, &content);
     if (strlen(header) > 0) {
         int status_code = extract_response_code(header);
         while (status_code >= 300 && status_code < 400) {
@@ -134,7 +226,7 @@ void *fetch_resource_url(void *data) {
             else
                 memcpy(tdata->url, redirect_page, strlen(redirect_page));
             free(redirect_page);
-            content_size = fetch_url(tdata->url, &header, &content);
+            content_size = fetch_url_https(tdata->url, &header, &content);
         }
         if (!is_html(header)) {
             char *title = extract_title(content);

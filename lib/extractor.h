@@ -20,7 +20,9 @@ int is_local_link(const char *link_url) {
         if (link_url[0] != '/' &&
             ((strlen(link_url) > 4) &&
              (strcmp(link_head, "http") == 0 ||
-              strcmp(link_head, "HTTP") == 0)))
+              strcmp(link_head, "HTTP") == 0 ||
+              strcmp(link_head, "www.") == 0 ||
+              strcmp(link_head, "WWW.") == 0)))
             return NOT_LOCAL_URL;
         else
             return EXIT_SUCCESS;
@@ -182,8 +184,8 @@ int validate_link(char **link) {
     if ((hash_location = strchr(*link, '#')) != NULL) {
         *hash_location = '\0';
     }
-    if ((*link)[strlen(*link) - 1] == '/') {
-        strcat(*link, "index.html");
+    if ((hash_location = strchr(*link, '?')) != NULL) {
+        *hash_location = '\0';
     }
     return EXIT_SUCCESS;
 }
@@ -207,9 +209,9 @@ char *urlencode(char *url, char *table) {
 }
 
 void path_shortener(char **path) {
-    char* dot_position = NULL;
+    char *dot_position = NULL;
     while ((dot_position = strstr(*path, "/..")) != NULL) {
-        char* slash = NULL, *previous_slash;
+        char *slash = NULL, *previous_slash;
         int covered = 0;
         while ((slash = strstr(*path + covered, "/")) != NULL && slash != dot_position) {
             previous_slash = slash;
@@ -231,15 +233,16 @@ void tags_extractor(MYSQL *connection, int id, const char *markup) {
     while (j < str_len &&
            (i = slre_match(regex, markup + j, str_len - j, caps, 4, SLRE_IGNORE_CASE)) > 0) {
         char *subpat;
-        subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
-        memcpy(subpat, caps[0].ptr, caps[0].len);
-        subpat[caps[0].len] = '\0';
-        if (strlen(tags) == 0)
-            sprintf(tags, "%s", subpat);
-        else
-            sprintf(tags, "%s | %s", tags, subpat);
-
-        free(subpat);
+        if (caps[0].ptr && caps[0].len) {
+            subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
+            memcpy(subpat, caps[0].ptr, caps[0].len);
+            subpat[caps[0].len] = '\0';
+            if (strlen(tags) == 0)
+                sprintf(tags, "%s", subpat);
+            else
+                sprintf(tags, "%s | %s", tags, subpat);
+            free(subpat);
+        }
         j += i;
     }
     if (strlen(tags) > 0) {
@@ -269,33 +272,35 @@ void regex_link_extractor(MYSQL *connection, int id, const char *regex, const ch
     while (j < str_len &&
            (i = slre_match(regex, markup + j, str_len - j, caps, 2, SLRE_IGNORE_CASE)) > 0) {
         char *subpat;
-        subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
-        memcpy(subpat, caps[0].ptr, caps[0].len);
-        subpat[caps[0].len] = '\0';
-        char *encoded_link;
-        if (is_local_link(subpat) == 0) {
-            char *sanitized_link;
-            sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
-            if (subpat[0] != '/') {
-                sprintf(sanitized_link, "%s%s", current_dir, subpat);
-            } else {
-                strcpy(sanitized_link, subpat);
-            }
-            if (!validate_link(&sanitized_link)) {
-                if (strstr(sanitized_link, "..") != NULL) {
-                    path_shortener(&sanitized_link);
+        if (caps[0].ptr && caps[0].len) {
+            subpat = (char *) malloc((caps[0].len + 1) * sizeof(char));
+            memcpy(subpat, caps[0].ptr, caps[0].len);
+            subpat[caps[0].len] = '\0';
+            char *encoded_link;
+            if (is_local_link(subpat) == 0) {
+                char *sanitized_link;
+                sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
+                if (subpat[0] != '/') {
+                    sprintf(sanitized_link, "%s%s", current_dir, subpat);
+                } else {
+                    strcpy(sanitized_link, subpat);
                 }
-                encoded_link = urlencode(sanitized_link, table);
-                db_insert_unique_link(connection, id, encoded_link);
+                if (!validate_link(&sanitized_link)) {
+                    if (strstr(sanitized_link, "..") != NULL) {
+                        path_shortener(&sanitized_link);
+                    }
+                    encoded_link = urlencode(sanitized_link, table);
+                    db_insert_unique_link(connection, id, encoded_link);
+                    free(encoded_link);
+                }
+                free(sanitized_link);
+            } else {
+                encoded_link = urlencode(subpat, table);
+                db_insert_external_link(connection, encoded_link);
                 free(encoded_link);
             }
-            free(sanitized_link);
-        } else {
-            encoded_link = urlencode(subpat, table);
-            db_insert_external_link(connection, encoded_link);
-            free(encoded_link);
+            free(subpat);
         }
-        free(subpat);
         j += i;
     }
 }

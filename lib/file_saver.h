@@ -3,6 +3,7 @@
 
 #include "includes.h"
 #include "config.h"
+#include "extractor.h"
 
 
 void file_write(char *path, char *content, int ishtml, int content_size) {

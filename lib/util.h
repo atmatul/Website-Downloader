@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#define NUMBER_OF_MIMETYPES 8
+#define NUMBER_OF_MIMETYPES 9
 #define MAX_EXT_LENGTH 6
 
 struct snode {
@@ -21,7 +21,8 @@ char *allowed_exts[NUMBER_OF_MIMETYPES] = {
         ".png",
         ".jpg",
         ".jpeg",
-        ".gif"
+        ".gif",
+        ".pdf"
 };
 
 #define ANSI_COLOR_RED     "\x1b[31m"

@@ -14,6 +14,11 @@ int main(int argc, char *argv[]) {
         notify_error("Unable to load config file.");
     }
 
+    ERR_load_BIO_strings();
+    SSL_load_error_strings();
+    OpenSSL_add_all_algorithms();
+    SSL_library_init();
+
     pthread_t thread_pool[MAX_THREAD_NUM] = {NULL};
 
     int db_singleton_val = 0;
@@ -40,7 +45,7 @@ int main(int argc, char *argv[]) {
     db_reset(connection);
     db_insert_link(connection, config.page);
     int id = 1;
-    int waiting = 0, init = 1;
+    int waiting, init = 1;
 
     while (1) {
         memset(pagelink, 0, strlen(pagelink));
@@ -68,23 +73,18 @@ int main(int argc, char *argv[]) {
 
             int ret = pthread_create(&(thread_pool[tid_index]), NULL, fetch_resource_url, tdata);
             if (!ret) {
-                if (init) {
-                    int init_id = id;
-                    while (waiting < 5) {
-                        id = db_fetch_next_id(connection, init_id);
-                        if (id == -1) {
-                            waiting++;
-                            printf(ANSI_COLOR_YELLOW "Couldn't get a valid id from db. Waiting for %d sec.\n"
-                                           ANSI_COLOR_RESET, waiting);
-                            sleep(waiting);
-                        } else {
-                            break;
-                        }
+                int init_id = id;
+                waiting = 0;
+                while (waiting < 5) {
+                    id = db_fetch_next_id(connection, init_id);
+                    if (id == -1) {
+                        waiting++;
+                        printf(ANSI_COLOR_YELLOW "Couldn't get a valid id from db. Waiting for %d sec.\n"
+                                       ANSI_COLOR_RESET, waiting);
+                        sleep(waiting);
+                    } else {
+                        break;
                     }
-
-                    init = 0;
-                } else {
-                    id = db_fetch_next_id(connection, id);
                 }
                 continue;
             }

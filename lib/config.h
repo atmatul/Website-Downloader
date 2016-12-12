@@ -10,6 +10,7 @@ typedef struct {
     char *host;
     char *port;
     char *page;
+    char *cert_location;
 
     char *root_path;
 
@@ -34,6 +35,8 @@ static int handler(void *user, const char *section, const char *name,
         pconfig->port = strdup(value);
     } else if (MATCH("server", "start_page")) {
         pconfig->page = strdup(value);
+    } else if (MATCH("server", "cert")) {
+        pconfig->cert_location = strdup(value);
     } else if (MATCH("search_engine", "root_path")) {
         pconfig->root_path = strdup(value);
     } else if (MATCH("database", "host")) {
