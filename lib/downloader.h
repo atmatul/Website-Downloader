@@ -76,7 +76,7 @@ int fetch_url_https(char *page, char **header, char **content) {
     BIO_get_ssl(bio, &ssl);
     SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
 
-    sprintf(hostport, "%s:https", host);
+    sprintf(hostport, "%s:%s", host, config.protocol);
     BIO_set_conn_hostname(bio, hostport);
 
     if (BIO_do_connect(bio) <= 0) {
@@ -142,10 +142,9 @@ int fetch_url_https(char *page, char **header, char **content) {
 int fetch_url(char *page, char **header, char **content) {
     extern configuration config;
     char *host = config.host;
-    char *port = config.port;
+    char *port = (strcmp(config.protocol, "http") == 0) ? "80" : "443";
     int socket_id;
     int result_id;
-    char *ip;
     struct addrinfo *server_info;
     char *http_header;
     char buffer[BUFSIZ + 1];
@@ -216,7 +215,9 @@ void *fetch_resource_url(void *data) {
     extern configuration config;
     thread_data *tdata = (thread_data *) data;
     char *header, *content;
-    int content_size = fetch_url_https(tdata->url, &header, &content);
+    int content_size = (strcmp(config.protocol, "https") == 0) ?
+                       fetch_url_https(tdata->url, &header, &content) :
+                        fetch_url(tdata->url, &header, &content);
     if (strlen(header) > 0) {
         int status_code = extract_response_code(header);
         while (status_code >= 300 && status_code < 400) {
@@ -226,7 +227,9 @@ void *fetch_resource_url(void *data) {
             else
                 memcpy(tdata->url, redirect_page, strlen(redirect_page));
             free(redirect_page);
-            content_size = fetch_url_https(tdata->url, &header, &content);
+            content_size = (strcmp(config.protocol, "https") == 0) ?
+                           fetch_url_https(tdata->url, &header, &content) :
+                           fetch_url(tdata->url, &header, &content);
         }
         if (!is_html(header)) {
             char *title = extract_title(content);
