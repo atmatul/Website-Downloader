@@ -9,26 +9,27 @@
 
 #define USERAGENT "NPLAB 1.0"
 
-int create_socket() {
+int create_socket(struct addrinfo *server_info) {
     int socket_id;
-    if ((socket_id = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+    if ((socket_id = socket(server_info->ai_family,
+                            server_info->ai_socktype,
+                            server_info->ai_protocol)) < 0) {
         notify_error("Unable to create socket.");
     }
     return socket_id;
 }
 
-char *resolve_ip_address(char *host) {
-    struct hostent *hent;
-    int iplen = 15;
-    char *ip = (char *) malloc(iplen + 1);
-    memset(ip, 0, iplen + 1);
-    if ((hent = gethostbyname(host)) == NULL) {
-        notify_error("Unable to resolve IP");
+struct addrinfo* resolve_ip_address(char *host, char *port) {
+    struct addrinfo hints, *server_info;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    if (getaddrinfo(host, port, &hints, &server_info) != 0) {
+        notify_error("Couldn't parse the host address");
     }
-    if (inet_ntop(AF_INET, (void *) hent->h_addr_list[0], ip, iplen) == NULL) {
-        notify_error("Unable to resolve host");
-    }
-    return ip;
+
+    return server_info;
 }
 
 char *build_get_query(char *host, char *page) {
@@ -48,28 +49,18 @@ char *build_get_query(char *host, char *page) {
 int fetch_url(char* page, char **header, char **content) {
     extern configuration config;
     char *host = config.host;
-    struct sockaddr_in *server_addr;
+    char *port = config.port;
     int socket_id;
     int result_id;
     char *ip;
+    struct addrinfo *server_info;
     char *http_header;
     char buffer[BUFSIZ + 1];
 
-    socket_id = create_socket();
-    ip = resolve_ip_address(host);
+    server_info = resolve_ip_address(host, port);
+    socket_id = create_socket(server_info);
 
-    server_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in *));
-    server_addr->sin_family = AF_INET;
-    result_id = inet_pton(AF_INET, ip, (void *) (&(server_addr->sin_addr.s_addr)));
-    if (result_id < 0) {
-        notify_error("Can't set server address.");
-    } else if (result_id == 0) {
-        notify_error("IP address invalid.");
-    }
-
-    server_addr->sin_port = htons(config.port);
-
-    if (connect(socket_id, (struct sockaddr *) server_addr, sizeof(struct sockaddr)) < 0) {
+    if (connect(socket_id, server_info->ai_addr, server_info->ai_addrlen) < 0) {
         notify_error("Could not connect");
     }
     http_header = build_get_query(host, page);
@@ -124,8 +115,7 @@ int fetch_url(char* page, char **header, char **content) {
     }
 
     free(http_header);
-    free(server_addr);
-    free(ip);
+    free(server_info);
     close(socket_id);
     return pagesize;
 }

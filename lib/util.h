@@ -178,7 +178,7 @@ size_t utf8_to_latin9(char *const output, const char *const input, const size_t 
 }
 
 void notify_error(const char* msg) {
-    printf("ERROR: %s\n", msg);
+    printf(ANSI_COLOR_RED "ERROR: %s\n" ANSI_COLOR_RESET, msg);
     exit(EXIT_FAILURE);
 }
 

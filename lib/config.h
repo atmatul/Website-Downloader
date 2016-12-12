@@ -8,7 +8,7 @@ typedef struct {
     const char* root_save_path;
     const char* invalid_save_path;
     char *host;
-    int port;
+    char *port;
     char *page;
 
     char *root_path;
@@ -31,7 +31,7 @@ static int handler(void *user, const char *section, const char *name,
     } else if (MATCH("server", "host")) {
         pconfig->host = strdup(value);
     } else if (MATCH("server", "port")) {
-        pconfig->port = atoi(value);
+        pconfig->port = strdup(value);
     } else if (MATCH("server", "start_page")) {
         pconfig->page = strdup(value);
     } else if (MATCH("search_engine", "root_path")) {
