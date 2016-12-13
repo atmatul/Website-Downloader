@@ -41,24 +41,25 @@ int main(int argc, char *argv[]) {
     MYSQL *connection = mysql_init(NULL);
     db_connect(connection);
 
-    system(delete_command);
-    db_reset(connection);
-    db_insert_link(connection, config.page);
-    int id = 1;
+//    system(delete_command);
+//    db_reset(connection);
+//    db_insert_link(connection, config.page);
+    int id = 4;
     int waiting, init = 1;
 
     while (1) {
-        memset(pagelink, 0, strlen(pagelink));
-
-        db_fetch_link(connection, id, &pagelink);
-        char *url;
-        url = (char *) malloc(BUFSIZ * sizeof(char));
-        if (pagelink == NULL) break;
-        memcpy(url, pagelink, strlen(pagelink));
-        url[strlen(pagelink)] = '\0';
-
         int tid_index;
-        if ((tid_index = is_available(thread_pool)) >= 0) {
+        if (init != 2 && (tid_index = is_available(thread_pool)) >= 0) {
+            memset(pagelink, 0, strlen(pagelink));
+
+            db_fetch_link(connection, id, &pagelink);
+            char *url;
+            url = (char *) malloc(BUFSIZ * sizeof(char));
+            if (pagelink == NULL) break;
+            memcpy(url, pagelink, strlen(pagelink));
+            url[strlen(pagelink)] = '\0';
+
+
             thread_data *tdata = (thread_data *) malloc(sizeof(thread_data));
             tdata->id = id;
             tdata->url = (char *) malloc((strlen(url) + 1) * sizeof(char));
@@ -70,11 +71,10 @@ int main(int argc, char *argv[]) {
             tdata->condition = &condition;
             tdata->db_singleton = &db_singleton_val;
             tdata->thread_pool = thread_pool;
-
             int ret = pthread_create(&(thread_pool[tid_index]), NULL, fetch_resource_url, tdata);
             if (!ret) {
+                if (init) init = 2;
                 int init_id = id;
-                waiting = 0;
                 while (waiting < 5) {
                     id = db_fetch_next_id(connection, init_id);
                     if (id == -1) {
@@ -94,6 +94,7 @@ int main(int argc, char *argv[]) {
                 void *ret_val;
                 int ret = pthread_join(thread_pool[i], ret_val);
                 if (!ret) {
+                    if (init) init = 0;
                     thread_pool[i] = NULL;
                 }
             }

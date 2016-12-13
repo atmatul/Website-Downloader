@@ -37,7 +37,10 @@ char *build_get_query(char *host, char *page) {
     char *query;
     char *getpage;
     getpage = page;
-    char *tpl = "GET /%s HTTP/1.0\nHost: %s\nUser-Agent: %s\n\n";
+    char *tpl = "GET /%s HTTP/1.0\n"
+            "Host: %s\n"
+            "User-Agent: %s\n"
+            "Cache-Control: no-cache\n\n";
     if (getpage[0] == '/') {
         getpage = getpage + 1;
     }

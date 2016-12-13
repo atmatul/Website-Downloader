@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include "config.h"
 
-#define MAX_THREAD_NUM 8
+#define MAX_THREAD_NUM 2
 
 struct sthread_data {
     int id;
@@ -14,6 +14,7 @@ struct sthread_data {
     pthread_mutex_t* lock;
     pthread_cond_t* condition;
     pthread_t *thread_pool;
+    int *done;
 };
 
 typedef struct sthread_data thread_data;
@@ -38,16 +39,17 @@ int is_only_thread(pthread_t thread_pool[]) {
 void wait_on_condition(pthread_t thread_pool[], int *db_singleton, pthread_cond_t *condition, pthread_mutex_t *lock) {
     pthread_mutex_lock(lock);
     if (is_only_thread(thread_pool) > 0) {
-        while(!(*db_singleton))
+        while(!(*db_singleton)) {
             pthread_cond_wait(condition, lock);
+        }
     }
     *db_singleton = 0;
 }
 
 void free_resource(int *db_singleton, pthread_cond_t *condition, pthread_mutex_t *lock) {
     *db_singleton = 1;
-    pthread_cond_signal(condition);
     pthread_mutex_unlock(lock);
+    pthread_cond_signal(condition);
 }
 
 

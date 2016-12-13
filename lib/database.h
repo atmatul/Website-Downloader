@@ -194,13 +194,13 @@ int db_fetch_next_id(MYSQL *connection, int id) {
     int new_id = -1;
 
     MYSQL_RES *result = mysql_store_result(connection);
-    if (mysql_num_rows(result) == 1) {
+    if (result && mysql_num_rows(result) == 1) {
         MYSQL_ROW link_row = mysql_fetch_row(result);
         if (link_row[0]) {
             new_id = atoi(link_row[0]);
         }
     }
-    mysql_free_result(result);
+    if (result) mysql_free_result(result);
 
     return new_id;
 }
@@ -216,7 +216,7 @@ int db_fetch_link(MYSQL *connection, int id, char **link) {
     }
 
     MYSQL_RES *result = mysql_store_result(connection);
-    if (mysql_num_rows(result) == 1) {
+    if (result && mysql_num_rows(result) == 1) {
         MYSQL_ROW link_row = mysql_fetch_row(result);
         if (link_row[0]) {
             strcpy(*link, link_row[0]);
@@ -224,8 +224,7 @@ int db_fetch_link(MYSQL *connection, int id, char **link) {
     } else {
         *link = NULL;
     }
-
-    mysql_free_result(result);
+    if (result) mysql_free_result(result);
 
     return EXIT_SUCCESS;
 }
