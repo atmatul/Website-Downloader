@@ -1,7 +1,6 @@
 #include "lib/includes.h"
 #include "lib/extractor.h"
 #include "lib/downloader.h"
-#include "lib/config.h"
 
 int main(int argc, char *argv[]) {
     char *config_filename;
@@ -21,6 +20,7 @@ int main(int argc, char *argv[]) {
     SSL_library_init();
 
     pthread_t thread_pool[MAX_THREAD_NUM] = {NULL};
+    thread_data* thread_data_pool[MAX_THREAD_NUM] = {NULL};
 
     int db_singleton_val = 0;
 
@@ -63,7 +63,6 @@ int main(int argc, char *argv[]) {
             memcpy(url, pagelink, strlen(pagelink));
             url[strlen(pagelink)] = '\0';
 
-
             thread_data *tdata = (thread_data *) malloc(sizeof(thread_data));
             tdata->id = id;
             tdata->url = (char *) malloc((strlen(url) + 1) * sizeof(char));
@@ -75,6 +74,9 @@ int main(int argc, char *argv[]) {
             tdata->condition = &condition;
             tdata->db_singleton = &db_singleton_val;
             tdata->thread_pool = thread_pool;
+            tdata->start = (struct timeval *) malloc(sizeof(struct timeval));
+            gettimeofday(tdata->start, NULL);
+            thread_data_pool[tid_index] = tdata;
             int ret = pthread_create(&(thread_pool[tid_index]), NULL, fetch_resource_url, tdata);
             if (!ret) {
                 if (init) init = 2;
@@ -100,6 +102,7 @@ int main(int argc, char *argv[]) {
                 if (!ret) {
                     if (init) init = 0;
                     thread_pool[i] = NULL;
+                    thread_data_pool[i] = NULL;
                 }
             }
         }

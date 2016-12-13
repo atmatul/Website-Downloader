@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include "config.h"
 
-#define MAX_THREAD_NUM 2
+#define MAX_THREAD_NUM 4
 
 struct sthread_data {
     int id;
@@ -14,7 +14,7 @@ struct sthread_data {
     pthread_mutex_t* lock;
     pthread_cond_t* condition;
     pthread_t *thread_pool;
-    int *done;
+    struct timeval *start;
 };
 
 typedef struct sthread_data thread_data;

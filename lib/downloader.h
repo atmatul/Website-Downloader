@@ -45,7 +45,7 @@ char *build_get_query(char *host, char *page) {
         getpage = getpage + 1;
     }
     // -5 is to consider the %s %s %s in tpl and the ending \0
-    query = (char *) malloc(strlen(host) + strlen(getpage) + strlen(USERAGENT) + strlen(tpl) - 5);
+    query = (char *) malloc(strlen(host) + strlen(getpage) + strlen(USERAGENT) + strlen(tpl));
     sprintf(query, tpl, getpage, host, USERAGENT);
     return query;
 }
@@ -102,6 +102,7 @@ int fetch_url_https(char *page, char **header, char **content) {
     int htmlstart = 0;
     int pagesize = 0;
     char *htmlcontent;
+
     while ((result_id = BIO_read(bio, buffer, BUFSIZ)) > 0) {
         if (htmlstart == 0) {
             htmlcontent = strstr(buffer, "\r\n\r\n");
@@ -134,7 +135,6 @@ int fetch_url_https(char *page, char **header, char **content) {
         *content = (char *) realloc(*content, (pagesize + 1) * sizeof(char));
         memset((*content + pagesize), '\0', 1);
     }
-
     BIO_free_all(bio);
     SSL_CTX_free(ctx);
 
@@ -254,22 +254,37 @@ void *fetch_resource_url(void *data) {
         if (!file_save(config, tdata->pagelink, header, content, content_size)) {
             if (content_size < 1024) {
                 printf("(#%d) " ANSI_COLOR_YELLOW "\t%d B\t" ANSI_COLOR_RESET
-                               ANSI_COLOR_BLUE "Saving: %s\n" ANSI_COLOR_RESET,
+                               ANSI_COLOR_BLUE "Saving: %s" ANSI_COLOR_RESET,
                        tdata->id, content_size, tdata->pagelink);
             } else {
                 printf("(#%d) " ANSI_COLOR_YELLOW "\t%d KB\t" ANSI_COLOR_RESET
-                               ANSI_COLOR_BLUE "Saving: %s\n" ANSI_COLOR_RESET,
+                               ANSI_COLOR_BLUE "Saving: %s" ANSI_COLOR_RESET,
                        tdata->id, content_size / 1024, tdata->pagelink);
             }
         } else {
             printf("Error: Unable to save file.\n");
         }
     }
+    struct timeval *end = (struct timeval *) malloc(sizeof(struct timeval));
+    gettimeofday(end, NULL);
+    if (tdata->start && end) {
+        long int time = 0;
+        time += (end->tv_sec - tdata->start->tv_sec) * 1000;
+        time += (end->tv_usec - tdata->start->tv_usec) / 1000;
+        if (time > 1000) {
+            printf(ANSI_COLOR_YELLOW "\t\tin %.2f s\n" ANSI_COLOR_RESET, (1.0) * time / 1000);
+        } else {
+            printf(ANSI_COLOR_YELLOW "\t\tin %ld ms\n" ANSI_COLOR_RESET, time);
+        }
+
+    }
 
     free(tdata->url);
     free(tdata->pagelink);
     free(header);
     free(content);
+    free(tdata->start);
+    free(end);
     free(tdata);
     return NULL;
 }
