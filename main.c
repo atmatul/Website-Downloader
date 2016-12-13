@@ -1,6 +1,7 @@
 #include "lib/includes.h"
 #include "lib/extractor.h"
 #include "lib/downloader.h"
+#include "lib/config.h"
 
 int main(int argc, char *argv[]) {
     char *config_filename;
@@ -41,10 +42,13 @@ int main(int argc, char *argv[]) {
     MYSQL *connection = mysql_init(NULL);
     db_connect(connection);
 
-//    system(delete_command);
-//    db_reset(connection);
-//    db_insert_link(connection, config.page);
-    int id = 4;
+    int id = config.begin_at;
+    if (id == 1) {
+        system(delete_command);
+        db_reset(connection);
+        db_insert_link(connection, config.page);
+    }
+
     int waiting, init = 1;
 
     while (1) {
