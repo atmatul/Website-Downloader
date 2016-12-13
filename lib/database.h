@@ -4,10 +4,20 @@
 #include "includes.h"
 #include "config.h"
 
+/**
+ * Helper function to print the recent errors stored in the connection
+ * @param connection the MySQL connection parameter
+ */
 void db_debug(MYSQL *connection) {
     fprintf(stderr, "%s\n", mysql_error(connection));
 }
 
+/**
+ * Resets the database deleting all the values
+ * Drops all the tables and creates them again
+ * @param connection the MySQL connection parameter
+ * @return
+ */
 int db_reset(MYSQL *connection) {
 
     if (mysql_query(connection, "DROP TABLE Link_Maps;")) {
@@ -68,6 +78,13 @@ int db_reset(MYSQL *connection) {
 
 }
 
+/**
+ * Connect to the database using the database configuration parameters passed
+ * onto the configuration structure. Requires username, password, host and the name
+ * of the database to connect to
+ * @param connection the MySQL connection parameter
+ * @return
+ */
 int db_connect(MYSQL *connection) {
     extern configuration config;
     if (mysql_real_connect(connection, config.db_host,
@@ -79,6 +96,13 @@ int db_connect(MYSQL *connection) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Insert the link url without any checks. This method is unsafe and might
+ * duplicate values in the table if proper care is not taken
+ * @param connection the MySQL connection parameter
+ * @param url the url to be insert into the table
+ * @return
+ */
 int db_insert_link(MYSQL *connection, const char *url) {
     char query[BUFSIZ];
 
@@ -90,6 +114,13 @@ int db_insert_link(MYSQL *connection, const char *url) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Insert the tags corresponding to a given page acquired by the tag_extractor function
+ * @param connection the MySQL connection parameter
+ * @param id the id corresponding to the page
+ * @param tags the tags to be inserted
+ * @return
+ */
 int db_add_tags(MYSQL *connection, int id, char *tags) {
     char query[100 * BUFSIZ];
 
@@ -103,6 +134,13 @@ int db_add_tags(MYSQL *connection, int id, char *tags) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Insert the title corresponding to a given page acquired by the extract_title function
+ * @param connection the MySQL connection parameter
+ * @param id the id corresponding to the page
+ * @param tags the tags to be inserted
+ * @return
+ */
 int db_insert_title(MYSQL *connection, const char *title, int id) {
     char query[BUFSIZ];
 

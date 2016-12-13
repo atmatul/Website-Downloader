@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['next',['next',['../structsnode.html#a91a76319ab431b979edd96540899a605',1,'snode']]]
+  ['host',['host',['../structconfiguration.html#aa75eac2b632684102dbe7f53c47a3ef0',1,'configuration']]]
 ];

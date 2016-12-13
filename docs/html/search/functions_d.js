@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['tags_5fextractor',['tags_extractor',['../extractor_8h.html#a21858b0e39c5d342e21c11170948f3cb',1,'extractor.h']]]
+  ['urlencode',['urlencode',['../extractor_8h.html#a05abd6910d76181231fe40c067304350',1,'extractor.h']]],
+  ['utf8_5fto_5flatin9',['utf8_to_latin9',['../util_8h.html#addb4f941630bfbcfdd9ae23da05297c1',1,'util.h']]]
 ];

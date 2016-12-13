@@ -5,6 +5,7 @@
 #include "ini/ini.h"
 #include "includes.h"
 
+/* The configuration structure to store all the configuration variables */
 typedef struct {
     const char* root_save_path;
     const char* invalid_save_path;
@@ -22,6 +23,15 @@ typedef struct {
     char *db_name;
 } configuration;
 
+/**
+ * The handler function to link all the configuration variables
+ * available in the .ini configuration file
+ * @param user
+ * @param section
+ * @param name
+ * @param value
+ * @return
+ */
 static int handler(void *user, const char *section, const char *name,
                    const char *value) {
     configuration *pconfig = (configuration *) user;

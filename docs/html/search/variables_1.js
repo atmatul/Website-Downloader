@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['client_5fsocket_5fids',['client_socket_ids',['../server_8c.html#a2b168bd715b80545c27ca5469860c523',1,'server.c']]],
-  ['config',['config',['../server_8c.html#a01e159f2c025cef25268db6966f3f356',1,'server.c']]]
+  ['begin_5fat',['begin_at',['../structconfiguration.html#a9a27f69c717f733862a700e379872cc9',1,'configuration']]]
 ];
