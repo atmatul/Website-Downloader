@@ -220,7 +220,12 @@ void *fetch_resource_url(void *data) {
     char *header, *content;
     int content_size = (strcmp(config.protocol, "https") == 0) ?
                        fetch_url_https(tdata->url, &header, &content) :
-                        fetch_url(tdata->url, &header, &content);
+                       fetch_url(tdata->url, &header, &content);
+    char template[BUFSIZ] = "# %-5d- " ANSI_COLOR_YELLOW " %6d %s   "
+            ANSI_COLOR_BLUE "Saving: %-60s" ANSI_COLOR_YELLOW "    in "
+            ANSI_COLOR_BLUE "%ld %s\n" ANSI_COLOR_RESET;
+    char output[BUFSIZ];
+
     if (strlen(header) > 0) {
         int status_code = extract_response_code(header);
         while (status_code >= 300 && status_code < 400) {
@@ -252,39 +257,28 @@ void *fetch_resource_url(void *data) {
 //                description_extractor(connection, id, content);
         }
         if (!file_save(config, tdata->pagelink, header, content, content_size)) {
-            if (content_size < 1024) {
-                printf("(#%d) " ANSI_COLOR_YELLOW "\t%d B\t" ANSI_COLOR_RESET
-                               ANSI_COLOR_BLUE "Saving: %s" ANSI_COLOR_RESET,
-                       tdata->id, content_size, tdata->pagelink);
-            } else {
-                printf("(#%d) " ANSI_COLOR_YELLOW "\t%d KB\t" ANSI_COLOR_RESET
-                               ANSI_COLOR_BLUE "Saving: %s" ANSI_COLOR_RESET,
-                       tdata->id, content_size / 1024, tdata->pagelink);
+            struct timeval *end = (struct timeval *) malloc(sizeof(struct timeval));
+            gettimeofday(end, NULL);
+            if (tdata->start && end) {
+                long int time = 0;
+                time += (end->tv_sec - tdata->start->tv_sec) * 1000;
+                time += (end->tv_usec - tdata->start->tv_usec) / 1000;
+                sprintf(output, template, tdata->id, content_size < 1024 ? content_size : content_size / 1024,
+                        content_size < 1024 ? "B" : "KB", tdata->pagelink, time > 1000 ? time / 1000 : time,
+                        time > 1000 ? "s" : "ms");
+                printf("%s", output);
             }
+            free(end);
+            free(tdata->start);
         } else {
             printf("Error: Unable to save file.\n");
         }
-    }
-    struct timeval *end = (struct timeval *) malloc(sizeof(struct timeval));
-    gettimeofday(end, NULL);
-    if (tdata->start && end) {
-        long int time = 0;
-        time += (end->tv_sec - tdata->start->tv_sec) * 1000;
-        time += (end->tv_usec - tdata->start->tv_usec) / 1000;
-        if (time > 1000) {
-            printf(ANSI_COLOR_YELLOW "\t\tin %.2f s\n" ANSI_COLOR_RESET, (1.0) * time / 1000);
-        } else {
-            printf(ANSI_COLOR_YELLOW "\t\tin %ld ms\n" ANSI_COLOR_RESET, time);
-        }
-
     }
 
     free(tdata->url);
     free(tdata->pagelink);
     free(header);
     free(content);
-    free(tdata->start);
-    free(end);
     free(tdata);
     return NULL;
 }

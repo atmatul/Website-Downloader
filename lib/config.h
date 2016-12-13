@@ -1,6 +1,7 @@
 #ifndef WEBSITE_DOWNLOADER_CONFIG_H_H
 #define WEBSITE_DOWNLOADER_CONFIG_H_H
 
+#include <openssl/ssl.h>
 #include "ini/ini.h"
 #include "includes.h"
 
