@@ -20,17 +20,17 @@ void db_debug(MYSQL *connection) {
  */
 int db_reset(MYSQL *connection) {
 
-    if (mysql_query(connection, "DROP TABLE Link_Maps;")) {
+    if (mysql_query(connection, "DROP TABLE IF EXISTS Link_Maps;")) {
         db_debug(connection);
         notify_error("Unable to drop old table.\n");
     }
 
-    if (mysql_query(connection, "DROP TABLE Links;")) {
+    if (mysql_query(connection, "DROP TABLE IF EXISTS Links;")) {
         db_debug(connection);
         notify_error("Unable to drop old table.\n");
     }
 
-    if (mysql_query(connection, "DROP TABLE Ext_Links;")) {
+    if (mysql_query(connection, "DROP TABLE IF EXISTS Ext_Links;")) {
         db_debug(connection);
         notify_error("Unable to drop old table.\n");
     }

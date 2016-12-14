@@ -103,32 +103,68 @@ int fetch_url_https(char *page, char **header, char **content) {
     int pagesize = 0;
     char *htmlcontent;
 
-    while ((result_id = BIO_read(bio, buffer, BUFSIZ)) > 0) {
-        if (htmlstart == 0) {
-            htmlcontent = strstr(buffer, "\r\n\r\n");
-            if (htmlcontent != NULL) {
-                htmlstart = 1;
-                htmlcontent += 4;
-                int header_size = (int) (htmlcontent - buffer);
-                *header = (char *) malloc((header_size + 1) * sizeof(char));
-                memcpy(*header, buffer, header_size);
-                *(*header + header_size) = '\0';
-                pagesize += result_id - header_size;
-                *content = (char *) malloc(pagesize * sizeof(char));
-                memset(*content, 0, pagesize);
-                memcpy(*content, htmlcontent, pagesize);
-            }
-        } else {
-            htmlcontent = buffer;
-            *content = (char *) realloc(*content, (pagesize + result_id) * sizeof(char));
-            memset((*content + pagesize), 0, result_id);
-            memcpy((*content + pagesize), htmlcontent, result_id);
-            pagesize += result_id;
-        }
-        memset(buffer, 0, result_id);
+    fd_set observer;
+    int bio_fd;
+    BIO_get_fd(bio, &bio_fd);
+    if (bio_fd == -1) {
+        printf(ANSI_COLOR_RED "Unable to get the fd for the BIO\n" ANSI_COLOR_RESET);
+        BIO_free_all(bio);
+        SSL_CTX_free(ctx);
+
+        return pagesize;
     }
+
+    struct timeval timeout;
+
+    while (1) {
+        timeout.tv_sec = config.timeout;
+        timeout.tv_usec = 0;
+        FD_ZERO(&observer);
+        FD_SET(bio_fd, &observer);
+        int ready = select(bio_fd + 1, &observer, (fd_set *) 0, (fd_set *) 0, &timeout);
+
+        if (ready < 0) {
+            printf(ANSI_COLOR_RED "Malfunction in select loop. Skipping " ANSI_COLOR_RESET);
+            printf(ANSI_COLOR_BLUE "%s\n" ANSI_COLOR_RESET, page);
+            break;
+        } else if (ready == 0) {
+            printf(ANSI_COLOR_RED "Select timed out. Skipping " ANSI_COLOR_RESET);
+            printf(ANSI_COLOR_BLUE "%s\n" ANSI_COLOR_RESET, page);
+            break;
+        } else {
+            if (FD_ISSET(bio_fd, &observer)) {
+                if ((result_id = BIO_read(bio, buffer, BUFSIZ)) > 0) {
+                    if (htmlstart == 0) {
+                        htmlcontent = strstr(buffer, "\r\n\r\n");
+                        if (htmlcontent != NULL) {
+                            htmlstart = 1;
+                            htmlcontent += 4;
+                            int header_size = (int) (htmlcontent - buffer);
+                            *header = (char *) malloc((header_size + 1) * sizeof(char));
+                            memcpy(*header, buffer, header_size);
+                            *(*header + header_size) = '\0';
+                            pagesize += result_id - header_size;
+                            *content = (char *) malloc(pagesize * sizeof(char));
+                            memset(*content, 0, pagesize);
+                            memcpy(*content, htmlcontent, pagesize);
+                        }
+                    } else {
+                        htmlcontent = buffer;
+                        *content = (char *) realloc(*content, (pagesize + result_id) * sizeof(char));
+                        memset((*content + pagesize), 0, result_id);
+                        memcpy((*content + pagesize), htmlcontent, result_id);
+                        pagesize += result_id;
+                    }
+                    memset(buffer, 0, result_id);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
     if (pagesize == 0) {
-        printf("ERROR: Receiving data: %s\n", page);
+        printf(ANSI_COLOR_RED "ERROR: Receiving data: %s\n" ANSI_COLOR_RESET, page);
     }
 
     if (*header != NULL && !is_html(*header)) {
@@ -175,30 +211,57 @@ int fetch_url(char *page, char **header, char **content) {
     int htmlstart = 0;
     int pagesize = 0;
     char *htmlcontent;
-    while ((result_id = recv(socket_id, buffer, BUFSIZ, 0)) > 0) {
-        if (htmlstart == 0) {
-            htmlcontent = strstr(buffer, "\r\n\r\n");
-            if (htmlcontent != NULL) {
-                htmlstart = 1;
-                htmlcontent += 4;
-                int header_size = (int) (htmlcontent - buffer);
-                *header = (char *) malloc((header_size + 1) * sizeof(char));
-                memcpy(*header, buffer, header_size);
-                *(*header + header_size) = '\0';
-                pagesize += result_id - header_size;
-                *content = (char *) malloc(pagesize * sizeof(char));
-                memset(*content, 0, pagesize);
-                memcpy(*content, htmlcontent, pagesize);
-            }
+    fd_set observer;
+
+    struct timeval timeout;
+
+    while (1) {
+        timeout.tv_sec = config.timeout;
+        timeout.tv_usec = 0;
+        FD_ZERO(&observer);
+        FD_SET(socket_id, &observer);
+        int ready = select(socket_id + 1, &observer, (fd_set *) 0, (fd_set *) 0, &timeout);
+
+        if (ready < 0) {
+            printf(ANSI_COLOR_RED "Malfunction in select loop. Skipping " ANSI_COLOR_RESET);
+            printf(ANSI_COLOR_BLUE "%s\n" ANSI_COLOR_RESET, page);
+            break;
+        } else if (ready == 0) {
+            printf(ANSI_COLOR_RED "Select timed out. Skipping " ANSI_COLOR_RESET);
+            printf(ANSI_COLOR_BLUE "%s\n" ANSI_COLOR_RESET, page);
+            break;
         } else {
-            htmlcontent = buffer;
-            *content = (char *) realloc(*content, (pagesize + result_id) * sizeof(char));
-            memset((*content + pagesize), 0, result_id);
-            memcpy((*content + pagesize), htmlcontent, result_id);
-            pagesize += result_id;
+            if (FD_ISSET(socket_id, &observer)) {
+                if ((result_id = recv(socket_id, buffer, BUFSIZ, 0)) > 0) {
+                    if (htmlstart == 0) {
+                        htmlcontent = strstr(buffer, "\r\n\r\n");
+                        if (htmlcontent != NULL) {
+                            htmlstart = 1;
+                            htmlcontent += 4;
+                            int header_size = (int) (htmlcontent - buffer);
+                            *header = (char *) malloc((header_size + 1) * sizeof(char));
+                            memcpy(*header, buffer, header_size);
+                            *(*header + header_size) = '\0';
+                            pagesize += result_id - header_size;
+                            *content = (char *) malloc(pagesize * sizeof(char));
+                            memset(*content, 0, pagesize);
+                            memcpy(*content, htmlcontent, pagesize);
+                        }
+                    } else {
+                        htmlcontent = buffer;
+                        *content = (char *) realloc(*content, (pagesize + result_id) * sizeof(char));
+                        memset((*content + pagesize), 0, result_id);
+                        memcpy((*content + pagesize), htmlcontent, result_id);
+                        pagesize += result_id;
+                    }
+                    memset(buffer, 0, result_id);
+                }
+            } else {
+                break;
+            }
         }
-        memset(buffer, 0, result_id);
     }
+
     if (pagesize == 0) {
         printf("ERROR: Receiving data: %s\n", page);
     }
@@ -226,7 +289,7 @@ void *fetch_resource_url(void *data) {
             ANSI_COLOR_BLUE "%ld %s\n" ANSI_COLOR_RESET;
     char output[BUFSIZ];
 
-    if (strlen(header) > 0) {
+    if (content_size && strlen(header) > 0) {
         int status_code = extract_response_code(header);
         while (status_code >= 300 && status_code < 400) {
             char *redirect_page;
@@ -277,8 +340,10 @@ void *fetch_resource_url(void *data) {
 
     free(tdata->url);
     free(tdata->pagelink);
-    free(header);
-    free(content);
+    if (content_size) {
+        free(header);
+        free(content);
+    }
     free(tdata);
     return NULL;
 }

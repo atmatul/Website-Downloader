@@ -14,6 +14,7 @@ typedef struct {
     char *page;
     int begin_at;
     char *cert_location;
+    int timeout;
 
     char *root_path;
 
@@ -51,6 +52,8 @@ static int handler(void *user, const char *section, const char *name,
         pconfig->begin_at = atoi(value);
     } else if (MATCH("server", "cert")) {
         pconfig->cert_location = strdup(value);
+    } else if (MATCH("server", "timeout")) {
+        pconfig->timeout = atoi(value);
     } else if (MATCH("search_engine", "root_path")) {
         pconfig->root_path = strdup(value);
     } else if (MATCH("database", "host")) {
