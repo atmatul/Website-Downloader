@@ -277,13 +277,16 @@ void regex_link_extractor(MYSQL *connection, int id, const char *regex, const ch
             memcpy(subpat, caps[0].ptr, caps[0].len);
             subpat[caps[0].len] = '\0';
             char *encoded_link;
-            if (is_local_link(subpat) == 0) {
+            char *trimmed_link = subpat;
+            while (*trimmed_link == ' ' || *trimmed_link == '\r')
+                trimmed_link++;
+            if (is_local_link(trimmed_link) == 0) {
                 char *sanitized_link;
                 sanitized_link = (char *) malloc(BUFSIZ * sizeof(char));
-                if (subpat[0] != '/') {
-                    sprintf(sanitized_link, "%s%s", current_dir, subpat);
+                if (trimmed_link[0] != '/') {
+                    sprintf(sanitized_link, "%s%s", current_dir, trimmed_link);
                 } else {
-                    strcpy(sanitized_link, subpat);
+                    strcpy(sanitized_link, trimmed_link);
                 }
                 if (!validate_link(&sanitized_link)) {
                     if (strstr(sanitized_link, "..") != NULL) {
@@ -295,7 +298,7 @@ void regex_link_extractor(MYSQL *connection, int id, const char *regex, const ch
                 }
                 free(sanitized_link);
             } else {
-                encoded_link = urlencode(subpat, table);
+                encoded_link = urlencode(trimmed_link, table);
                 db_insert_external_link(connection, encoded_link);
                 free(encoded_link);
             }

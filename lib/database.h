@@ -4,18 +4,12 @@
 #include "includes.h"
 #include "config.h"
 
-/* To create mysqldump into a specific file use
- * mysqldump -u username -p -v olddatabase > olddbdump.sql
- * mysqladmin -u username -p create newdatabase
- * mysql -u username -p newdatabase < olddbdump.sql
- */
-
 /**
  * Helper function to print the recent errors stored in the connection
  * @param connection the MySQL connection parameter
  */
 void db_debug(MYSQL *connection) {
-    fprintf(stderr, "%s\n", mysql_error(connection));
+    printf(ANSI_COLOR_RED "%s\n" ANSI_COLOR_RESET, mysql_error(connection));
 }
 
 /**

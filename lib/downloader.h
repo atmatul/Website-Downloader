@@ -263,7 +263,7 @@ int fetch_url(char *page, char **header, char **content) {
     }
 
     if (pagesize == 0) {
-        printf("ERROR: Receiving data: %s\n", page);
+        printf(ANSI_COLOR_RED "ERROR: Receiving data: %s\n" ANSI_COLOR_RESET, page);
     }
 
     if (*header != NULL && !is_html(*header)) {
