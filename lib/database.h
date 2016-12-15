@@ -4,6 +4,12 @@
 #include "includes.h"
 #include "config.h"
 
+/* To create mysqldump into a specific file use
+ * mysqldump -u username -p -v olddatabase > olddbdump.sql
+ * mysqladmin -u username -p create newdatabase
+ * mysql -u username -p newdatabase < olddbdump.sql
+ */
+
 /**
  * Helper function to print the recent errors stored in the connection
  * @param connection the MySQL connection parameter

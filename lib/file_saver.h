@@ -32,7 +32,7 @@ int file_save(configuration config, char *pagelink, char *header, char *content,
     if (filepath[strlen(filepath) - 1] == '/') {
         sprintf(filepath, "%s%s", filepath, "index.html");
     }
-    if (match_extension(filepath, &ext_name) == -1) {
+    if (!is_html(header) && match_extension(filepath, &ext_name) == -1) {
         sprintf(filepath, "%s%s", filepath, ".html");
     }
     free(ext_name);

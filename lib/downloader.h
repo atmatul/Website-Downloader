@@ -284,9 +284,9 @@ void *fetch_resource_url(void *data) {
     int content_size = (strcmp(config.protocol, "https") == 0) ?
                        fetch_url_https(tdata->url, &header, &content) :
                        fetch_url(tdata->url, &header, &content);
-    char template[BUFSIZ] = "# %-6d - " ANSI_COLOR_YELLOW " %6d %s   "
-            ANSI_COLOR_BLUE "Downloaded: %-60s" ANSI_COLOR_YELLOW "    in "
-            ANSI_COLOR_BLUE "%ld %s\n" ANSI_COLOR_RESET;
+    char template[BUFSIZ] = "# %-6d - " ANSI_COLOR_YELLOW " %6d %s   " ANSI_COLOR_RESET
+            ANSI_COLOR_BLUE "Downloaded: %-60s" ANSI_COLOR_RESET ANSI_COLOR_YELLOW "    in "
+            ANSI_COLOR_RESET ANSI_COLOR_BLUE "%ld %s\n" ANSI_COLOR_RESET;
     char output[BUFSIZ];
 
     if (content_size && strlen(header) > 0) {
