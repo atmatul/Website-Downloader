@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="extraStyleSheetFile.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -72,7 +73,6 @@ $(function() {
 <div class="textblock"><code>#include &lt;ctype.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="includes_8h_source.html">includes.h</a>&quot;</code><br />
 <code>#include &quot;slre/slre.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="list_8h_source.html">list.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="database_8h_source.html">database.h</a>&quot;</code><br />
 </div>
 <p><a href="extractor_8h_source.html">Go to the source code of this file.</a></p>
@@ -176,6 +176,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extract the description to be used as tags in the search engine </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">id</td><td>the id of the response page for reference to the database </td></tr>
+    <tr><td class="paramname">content</td><td>the body of the http response </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -204,6 +212,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>In case of a 3XX response from the server, look for the Location tag in the header to be used for fetching the page from the new location </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">header</td><td>the header of the http response </td></tr>
+    <tr><td class="paramname">host</td><td>the hostname being used </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -222,6 +238,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extract the response code from the response header </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">header</td><td>header of the http response </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -240,6 +263,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>In case of the search engine, extract the search string from the query parameters of the GET request </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">header</td><td>the header of the request </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -258,6 +288,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extract the title of the page from the bod of the http response </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">content</td><td>the body of the http response </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -276,6 +313,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Process the header of the response to determine if the page returned is of type html </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">header</td><td>the header of the response </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -294,6 +338,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Check if the link is local to the given host </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">link_url</td><td>the link url to be checked </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -322,6 +373,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Check if the directory path contains any forbidden characters </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>the directory path to be checked </td></tr>
+    <tr><td class="paramname">size</td><td>size of the directory path </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -362,6 +421,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>parent function to the regex_link_extractor looking for drc and href link urls </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">id</td><td>the id of the page being processed </td></tr>
+    <tr><td class="paramname">url</td><td>the url of the page to be used to get the absolute paths of the links </td></tr>
+    <tr><td class="paramname">markup</td><td>the body of the http response </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -380,6 +448,12 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Shorten the path of the url if relative paths are present </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>the path to be shortened </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -426,6 +500,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extract the links from the http response body corresponding to the given regular expression After extraction, validate, sanitize the link and insert into the database </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">id</td><td>the id of the page being processed </td></tr>
+    <tr><td class="paramname">regex</td><td>the regular expression specifying the type of the link (e.g. href, src etc.) </td></tr>
+    <tr><td class="paramname">url</td><td>the url of the page to be used to get the absolute paths of the links </td></tr>
+    <tr><td class="paramname">markup</td><td>the body of the http response </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -460,6 +544,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extract the tags to be used as keywords in the search engine </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">id</td><td>the id of the response page for reference to the database </td></tr>
+    <tr><td class="paramname">content</td><td>the body of the http response </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -488,6 +580,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>urlencode the given link url for safety </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">url</td><td>the url to be encoded </td></tr>
+    <tr><td class="paramname">table</td><td>the table containing character references </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -506,6 +606,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Check if the link is valid. If yes, sanitize the link </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">link</td><td>the link url to be processed </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>

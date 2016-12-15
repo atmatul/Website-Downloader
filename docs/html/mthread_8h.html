@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="extraStyleSheetFile.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -83,7 +84,7 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:a7370ddc11d266a9c68a40d91bf05927e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mthread_8h.html#a7370ddc11d266a9c68a40d91bf05927e">MAX_THREAD_NUM</a>&#160;&#160;&#160;4</td></tr>
+<tr class="memitem:a7370ddc11d266a9c68a40d91bf05927e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mthread_8h.html#a7370ddc11d266a9c68a40d91bf05927e">MAX_THREAD_NUM</a>&#160;&#160;&#160;32</td></tr>
 <tr class="separator:a7370ddc11d266a9c68a40d91bf05927e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -110,7 +111,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MAX_THREAD_NUM&#160;&#160;&#160;4</td>
+          <td class="memname">#define MAX_THREAD_NUM&#160;&#160;&#160;32</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -164,6 +165,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Function to unlock the database resource to be used by other threads </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">db_singleton</td><td>the atomic variable corresponding to the db connection </td></tr>
+    <tr><td class="paramname">condition</td><td>the condition used to synchronize the threads </td></tr>
+    <tr><td class="paramname">lock</td><td>the mutex variable used to synchronize the threads </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -182,6 +191,12 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Check if resources are available for creation of a new thread </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">the</td><td>thread_pool to be checked </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -200,6 +215,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Check if the thread_pool contains only a single thread </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">thread_pool</td><td>the thread_pool to be checked </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -240,6 +262,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Implementation of a conditional mutex lock to use the sigleton database connection </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">thread_pool</td><td>the thread_pool containg all the threads </td></tr>
+    <tr><td class="paramname">db_singleton</td><td>the atomic variable corresponding to the db connection </td></tr>
+    <tr><td class="paramname">condition</td><td>the condition used to synchronize the threads </td></tr>
+    <tr><td class="paramname">lock</td><td>the mutex variable used to synchronize the threads </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

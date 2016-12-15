@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="extraStyleSheetFile.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -125,6 +126,17 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Sanitize the save path for the remote resource. Parent and helper function to file_write function. Also checks and creates the directories if not present. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">config</td><td>the configuration parameter containing the root save path </td></tr>
+    <tr><td class="paramname">pagelink</td><td>the link of the url to be used to maintain the directory structure </td></tr>
+    <tr><td class="paramname">header</td><td>the header of the http response </td></tr>
+    <tr><td class="paramname">content</td><td>the body of the http response </td></tr>
+    <tr><td class="paramname">content_size</td><td>the size of the body of the http response </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -165,6 +177,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Based on the type of the file (e.g. binary or text) save the file into the host hard-drive </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>absolute path where the file should be saved </td></tr>
+    <tr><td class="paramname">content</td><td>the content of the http response </td></tr>
+    <tr><td class="paramname">ishtml</td><td>the flag describing the type of the file </td></tr>
+    <tr><td class="paramname">content_size</td><td>the size of the http response </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

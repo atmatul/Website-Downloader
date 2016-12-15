@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['next',['next',['../structsnode.html#a91a76319ab431b979edd96540899a605',1,'snode']]],
-  ['node',['node',['../util_8h.html#a19b2747d89bf5566d8377c09b2adb837',1,'util.h']]],
   ['not_5flocal_5furl',['NOT_LOCAL_URL',['../extractor_8h.html#a0f27f747a0fa181422c65b68963c6df0',1,'extractor.h']]],
   ['not_5fvalid_5furl',['NOT_VALID_URL',['../extractor_8h.html#a056403b45961ee5b269e17a10af30af5',1,'extractor.h']]],
   ['notify_5ferror',['notify_error',['../util_8h.html#aa0df3ffa4d98ef9231b98f2f32df02ba',1,'util.h']]],

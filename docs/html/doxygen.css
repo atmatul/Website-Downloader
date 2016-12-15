@@ -1173,10 +1173,9 @@ dl.section dd {
 
 #projectname
 {
-	font: 200% Monospace;
+	font: 300% Tahoma, Arial,sans-serif;
 	margin: 0px;
-	padding: 2px 14px;
-
+	padding: 2px 0px;
 }
     
 #projectbrief
@@ -1198,8 +1197,7 @@ dl.section dd {
 	padding: 0px;
 	margin: 0px;
 	width: 100%;
-	border-bottom: 1px solid #ccc;
-	background: #e8ecf5;
+	border-bottom: 1px solid #5373B4;
 }
 
 .image

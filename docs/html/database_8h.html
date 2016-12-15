@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="extraStyleSheetFile.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -226,6 +227,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fetch the link url corresponding to an id </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">id</td><td>the id whose corresponding link is being fetched </td></tr>
+    <tr><td class="paramname">link</td><td>the reference to the link object </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -254,6 +264,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fetch the id of the page corresponding to the given url </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">url</td><td>the url whose id should be fetched </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -282,6 +300,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Fetch the id of the url to be downloaded next </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">id</td><td>the id of the current url being downloaded </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -310,6 +336,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Insert the external link url without any checks. This method is unsafe and might duplicate values in the table if proper care is not taken </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">url</td><td>the url to be inserted into the table </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -380,6 +414,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Insert the mapping between a source and a target page to the table link_maps </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">from</td><td>the id corresponding to the source page </td></tr>
+    <tr><td class="paramname">to</td><td>the id corresponding to the source page </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -417,8 +460,8 @@ Functions</h2></td></tr>
 <p>Insert the title corresponding to a given page acquired by the extract_title function </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">title</td><td>the title to be inserted </td></tr>
     <tr><td class="paramname">id</td><td>the id corresponding to the page </td></tr>
-    <tr><td class="paramname">tags</td><td>the tags to be inserted </td></tr>
   </table>
   </dd>
 </dl>
@@ -457,6 +500,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Insert the link url if its unique or update the occurence of that url. duplicate values in the table if proper care is not taken </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">id</td><td>the source id to be inserted into the link_maps </td></tr>
+    <tr><td class="paramname">url</td><td>the url to be inserted into the table </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -510,6 +562,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The paramount function to be used while searching in the search engine </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">connection</td><td>the MySQL connection parameter </td></tr>
+    <tr><td class="paramname">search</td><td>the search string inserted by the user </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>

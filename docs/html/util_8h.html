@@ -13,6 +13,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="extraStyleSheetFile.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -63,9 +64,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
@@ -76,11 +75,6 @@ $(function() {
 </div>
 <p><a href="util_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnode.html">snode</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:aca425e5c726bbf467ec5ce1328c1ddbc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="util_8h.html#aca425e5c726bbf467ec5ce1328c1ddbc">NUMBER_OF_MIMETYPES</a>&#160;&#160;&#160;9</td></tr>
@@ -101,11 +95,6 @@ Macros</h2></td></tr>
 <tr class="separator:a8d0b0043e152438bb39b918a1f98c65f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92a364c2b863dde1a024a77eac2a5b3b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="util_8h.html#a92a364c2b863dde1a024a77eac2a5b3b">ANSI_COLOR_RESET</a>&#160;&#160;&#160;&quot;\x1b[0m&quot;</td></tr>
 <tr class="separator:a92a364c2b863dde1a024a77eac2a5b3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:a19b2747d89bf5566d8377c09b2adb837"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structsnode.html">snode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="util_8h.html#a19b2747d89bf5566d8377c09b2adb837">node</a></td></tr>
-<tr class="separator:a19b2747d89bf5566d8377c09b2adb837"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -248,21 +237,6 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="a19b2747d89bf5566d8377c09b2adb837"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19b2747d89bf5566d8377c09b2adb837">&#9670;&nbsp;</a></span>node</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct <a class="el" href="structsnode.html">snode</a> <a class="el" href="util_8h.html#a19b2747d89bf5566d8377c09b2adb837">node</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a6d99e0864f4f61d7c69fc350cad7bd11"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6d99e0864f4f61d7c69fc350cad7bd11">&#9670;&nbsp;</a></span>match_extension()</h2>
@@ -289,6 +263,14 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Extract the extension of the remote url and determine the type of it </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">path</td><td>the remote url to be processed </td></tr>
+    <tr><td class="paramname">ext_name</td><td>the reference to the extension string to be returned </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -307,6 +289,12 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The function to be used in general to notify fatal errors and exiting the program </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">msg</td><td>the message to be displayed while exiting. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -341,6 +329,15 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Convert an UTF-8 string to ISO-8859-15. All invalid sequences are ignored. Note: output == input is allowed, but input &lt; output &lt; input + length is not. Output has to have room for (length+1) chars, including the trailing NUL byte. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">output</td><td>the output encoded string </td></tr>
+    <tr><td class="paramname">input</td><td>the unsafe input string </td></tr>
+    <tr><td class="paramname">length</td><td>the length of the input string </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
