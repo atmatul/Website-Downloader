@@ -98,6 +98,7 @@ int main(int argc, char *argv[]) {
             if (!ret) {
                 if (init) init = 2;
                 int init_id = id;
+                waiting = 0;
                 /* Wait until the next id is available in the database */
                 while (waiting < 5) {
                     id = db_fetch_next_id(connection, init_id);
