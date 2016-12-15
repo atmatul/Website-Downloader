@@ -4,12 +4,16 @@
 #include <ctype.h>
 #include "includes.h"
 #include "slre/slre.h"
-#include "list.h"
 #include "database.h"
 
 #define NOT_VALID_URL -2
 #define NOT_LOCAL_URL -1
 
+/**
+ * Check if the link is local to the given host
+ * @param link_url the link url to be checked
+ * @return
+ */
 int is_local_link(const char *link_url) {
     if (strlen(link_url) > 0) {
         char link_head[5];
@@ -31,6 +35,11 @@ int is_local_link(const char *link_url) {
     }
 }
 
+/**
+ * Process the header of the response to determine if the page returned is of type html
+ * @param header the header of the response
+ * @return
+ */
 int is_html(const char *header) {
     static const char *regex = "text/html";
     struct slre_cap caps[2];
@@ -43,6 +52,12 @@ int is_html(const char *header) {
     }
 }
 
+/**
+ * Check if the directory path contains any forbidden characters
+ * @param path the directory path to be checked
+ * @param size size of the directory path
+ * @return
+ */
 int is_valid_dir_path(const char *path, int size) {
     for (int i = 0; i < size; i++) {
         if (path[i] == '.') {
@@ -52,6 +67,11 @@ int is_valid_dir_path(const char *path, int size) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Extract the response code from the response header
+ * @param header header of the http response
+ * @return
+ */
 int extract_response_code(const char *header) {
     static const char *regex = "HTTP/1[^\\s]+ ([\\d]+)";
     struct slre_cap caps[2];
@@ -71,6 +91,12 @@ int extract_response_code(const char *header) {
     return -1;
 }
 
+/**
+ * In case of the search engine, extract the search string from the
+ * query parameters of the GET request
+ * @param header the header of the request
+ * @return
+ */
 char *extract_search_string(const char *header) {
     static const char *regex = "GET /[^=]+=([^\\s&]+)";
     struct slre_cap caps[2];
@@ -92,9 +118,12 @@ char *extract_search_string(const char *header) {
     return "";
 }
 
+/**
+ * Extract the title of the page from the bod of the http response
+ * @param content the body of the http response
+ * @return
+ */
 char *extract_title(const char *content) {
-    struct slre_cap caps[2];
-    int j = 0, str_len = strlen(content);
     char *pattern_start = strstr(content, "<title>");
     if (pattern_start == NULL) {
         pattern_start = strstr(content, "<TITLE>");
@@ -118,7 +147,12 @@ char *extract_title(const char *content) {
     return "";
 }
 
-
+/**
+ * Extract the description to be used as tags in the search engine
+ * @param connection the MySQL connection parameter
+ * @param id the id of the response page for reference to the database
+ * @param content the body of the http response
+ */
 void description_extractor(MYSQL *connection, int id, char *content) {
     char *pattern = strstr(content, "DESCRIPTION\n");
     char *pattern_next;
@@ -159,6 +193,13 @@ void description_extractor(MYSQL *connection, int id, char *content) {
     free(data);
 }
 
+/**
+ * In case of a 3XX response from the server, look for the Location tag in the
+ * header to be used for fetching the page from the new location
+ * @param header the header of the http response
+ * @param host the hostname being used
+ * @return
+ */
 char *extract_redirect_location(const char *header, const char *host) {
     char regex[BUFSIZ] = {0};
     sprintf(regex, "Location: http://%s([^\r\n]+)", host);
@@ -176,6 +217,11 @@ char *extract_redirect_location(const char *header, const char *host) {
     return subpat;
 }
 
+/**
+ * Check if the link is valid. If yes, sanitize the link
+ * @param link the link url to be processed
+ * @return
+ */
 int validate_link(char **link) {
     if ((strchr(*link, '(') != NULL) || (strchr(*link, ')') != NULL)) {
         return EXIT_FAILURE;
@@ -190,6 +236,12 @@ int validate_link(char **link) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * urlencode the given link url for safety
+ * @param url the url to be encoded
+ * @param table the table containing character references
+ * @return
+ */
 char *urlencode(char *url, char *table) {
     char *temp_url = url;
     int i;
@@ -208,6 +260,10 @@ char *urlencode(char *url, char *table) {
     return enc;
 }
 
+/**
+ * Shorten the path of the url if relative paths are present
+ * @param path the path to be shortened
+ */
 void path_shortener(char **path) {
     char *dot_position = NULL;
     while ((dot_position = strstr(*path, "/..")) != NULL) {
@@ -224,6 +280,12 @@ void path_shortener(char **path) {
     }
 }
 
+/**
+* Extract the tags to be used as keywords in the search engine
+* @param connection the MySQL connection parameter
+* @param id the id of the response page for reference to the database
+* @param content the body of the http response
+*/
 void tags_extractor(MYSQL *connection, int id, const char *markup) {
     static const char *regex = "<h1[^>]*>([^<\r\n]*)[^<]*</h1>";
     struct slre_cap caps[4];
@@ -257,7 +319,15 @@ void tags_extractor(MYSQL *connection, int id, const char *markup) {
     free(tags);
 }
 
-
+/**
+ * Extract the links from the http response body corresponding to the given regular expression
+ * After extraction, validate, sanitize the link and insert into the database
+ * @param connection the MySQL connection parameter
+ * @param id the id of the page being processed
+ * @param regex the regular expression specifying the type of the link (e.g. href, src etc.)
+ * @param url the url of the page to be used to get the absolute paths of the links
+ * @param markup the body of the http response
+ */
 void regex_link_extractor(MYSQL *connection, int id, const char *regex, const char *url, const char *markup) {
     char table[256] = {0};
     int i = 0;
@@ -308,6 +378,13 @@ void regex_link_extractor(MYSQL *connection, int id, const char *regex, const ch
     }
 }
 
+/**
+ * parent function to the regex_link_extractor looking for drc and href link urls
+ * @param connection the MySQL connection parameter
+ * @param id the id of the page being processed
+ * @param url the url of the page to be used to get the absolute paths of the links
+ * @param markup the body of the http response
+ */
 void link_extractor(MYSQL *connection, int id, const char *url, const char *markup) {
     static const char *href_regex = "href=\"([^'\"<>]+)\"";
     static const char *src_regex = "src=\"([^'\"<>]+)\"";

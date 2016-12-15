@@ -5,7 +5,14 @@
 #include "config.h"
 #include "extractor.h"
 
-
+/**
+ * Based on the type of the file (e.g. binary or text) save the file
+ * into the host hard-drive
+ * @param path absolute path where the file should be saved
+ * @param content the content of the http response
+ * @param ishtml the flag describing the type of the file
+ * @param content_size the size of the http response
+ */
 void file_write(char *path, char *content, int ishtml, int content_size) {
     FILE *log_file;
     if (!ishtml) {
@@ -23,7 +30,16 @@ void file_write(char *path, char *content, int ishtml, int content_size) {
     }
 }
 
-
+/**
+ * Sanitize the save path for the remote resource. Parent and helper function
+ * to file_write function. Also checks and creates the directories if not present.
+ * @param config the configuration parameter containing the root save path
+ * @param pagelink the link of the url to be used to maintain the directory structure
+ * @param header the header of the http response
+ * @param content the body of the http response
+ * @param content_size the size of the body of the http response
+ * @return
+ */
 int file_save(configuration config, char *pagelink, char *header, char *content, int content_size) {
     char filepath[BUFSIZ];
     char *ext_name = (char *) malloc(MAX_EXT_LENGTH * sizeof(char));

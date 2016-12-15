@@ -137,8 +137,8 @@ int db_add_tags(MYSQL *connection, int id, char *tags) {
 /**
  * Insert the title corresponding to a given page acquired by the extract_title function
  * @param connection the MySQL connection parameter
+ * @param title the title to be inserted
  * @param id the id corresponding to the page
- * @param tags the tags to be inserted
  * @return
  */
 int db_insert_title(MYSQL *connection, const char *title, int id) {
@@ -154,6 +154,13 @@ int db_insert_title(MYSQL *connection, const char *title, int id) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Insert the mapping between a source and a target page to the table link_maps
+ * @param connection the MySQL connection parameter
+ * @param from the id corresponding to the source page
+ * @param to the id corresponding to the source page
+ * @return
+ */
 int db_insert_link_map(MYSQL *connection, int from, int to) {
     char query[BUFSIZ];
 
@@ -167,6 +174,12 @@ int db_insert_link_map(MYSQL *connection, int from, int to) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Fetch the id of the page corresponding to the given url
+ * @param connection the MySQL connection parameter
+ * @param url the url whose id should be fetched
+ * @return
+ */
 int db_fetch_link_id(MYSQL *connection, const char *url) {
     char query[BUFSIZ];
 
@@ -189,6 +202,14 @@ int db_fetch_link_id(MYSQL *connection, const char *url) {
     return link_id;
 }
 
+/**
+ * Insert the link url if its unique or update the occurence of that url.
+ * duplicate values in the table if proper care is not taken
+ * @param connection the MySQL connection parameter
+ * @param id the source id to be inserted into the link_maps
+ * @param url the url to be inserted into the table
+ * @return
+ */
 int db_insert_unique_link(MYSQL *connection, int id, const char *url) {
     char query[BUFSIZ];
 
@@ -207,6 +228,13 @@ int db_insert_unique_link(MYSQL *connection, int id, const char *url) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Insert the external link url without any checks. This method is unsafe and might
+ * duplicate values in the table if proper care is not taken
+ * @param connection the MySQL connection parameter
+ * @param url the url to be inserted into the table
+ * @return
+ */
 int db_insert_external_link(MYSQL *connection, const char *url) {
     char query[BUFSIZ];
 
@@ -220,6 +248,12 @@ int db_insert_external_link(MYSQL *connection, const char *url) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Fetch the id of the url to be downloaded next
+ * @param connection the MySQL connection parameter
+ * @param id the id of the current url being downloaded
+ * @return
+ */
 int db_fetch_next_id(MYSQL *connection, int id) {
     char query[BUFSIZ];
 
@@ -243,7 +277,13 @@ int db_fetch_next_id(MYSQL *connection, int id) {
     return new_id;
 }
 
-
+/**
+ * Fetch the link url corresponding to an id
+ * @param connection the MySQL connection parameter
+ * @param id the id whose corresponding link is being fetched
+ * @param link the reference to the link object
+ * @return
+ */
 int db_fetch_link(MYSQL *connection, int id, char **link) {
     char query[BUFSIZ];
 
@@ -267,6 +307,12 @@ int db_fetch_link(MYSQL *connection, int id, char **link) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * The paramount function to be used while searching in the search engine
+ * @param connection the MySQL connection parameter
+ * @param search the search string inserted by the user
+ * @return
+ */
 MYSQL_RES *db_search(MYSQL *connection, const char *search) {
     char query[BUFSIZ];
     sprintf(query, "SELECT occurence, title, link, CONCAT(LEFT(tags, 200), IF(LENGTH(tags)>200, \"...\", \"\"))"

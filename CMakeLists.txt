@@ -22,7 +22,6 @@ set(SOURCE_FILES lib/slre/slre.h
         lib/includes.h
         lib/downloader.h
         lib/file_saver.h
-        lib/list.h
         lib/util.h
         lib/database.h
         lib/ini/ini.h

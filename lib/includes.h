@@ -21,6 +21,7 @@
 #include "config.h"
 #include "util.h"
 
+/* The global configuration parameter */
 configuration config;
 
 #endif //WEBSITE_DOWNLOADER_INCLUDES_H_H

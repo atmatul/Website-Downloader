@@ -6,13 +6,7 @@
 #define NUMBER_OF_MIMETYPES 9
 #define MAX_EXT_LENGTH 6
 
-struct snode {
-    char page[BUFSIZ];
-    struct snode* next;
-};
-
-typedef struct snode node;
-
+/* Allowed extensions for the match_extension function */
 char *allowed_exts[NUMBER_OF_MIMETYPES] = {
         ".html",
         ".css",
@@ -25,6 +19,7 @@ char *allowed_exts[NUMBER_OF_MIMETYPES] = {
         ".pdf"
 };
 
+/* Helper macros for colored console output */
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -33,6 +28,12 @@ char *allowed_exts[NUMBER_OF_MIMETYPES] = {
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+/**
+ * Extract the extension of the remote url and determine the type of it
+ * @param path the remote url to be processed
+ * @param ext_name the reference to the extension string to be returned
+ * @return
+ */
 int match_extension(char *path, char **ext_name) {
     int ext_match_found = -1;
     for (int i = 0; i < NUMBER_OF_MIMETYPES; i++) {
@@ -48,7 +49,8 @@ int match_extension(char *path, char **ext_name) {
     return ext_match_found;
 }
 
-/* UTF-8 to ISO-8859-1/ISO-8859-15 mapper.
+/** UTF-8 to ISO-8859-1/ISO-8859-15 mapper.
+ * @param code the character code to be encoded
  * Return 0..255 for valid ISO-8859-15 code points, 256 otherwise.
 */
 static inline unsigned int to_latin9(const unsigned int code)
@@ -69,13 +71,16 @@ static inline unsigned int to_latin9(const unsigned int code)
     }
 }
 
-/* Convert an UTF-8 string to ISO-8859-15.
+/** Convert an UTF-8 string to ISO-8859-15.
  * All invalid sequences are ignored.
  * Note: output == input is allowed,
  * but   input < output < input + length
- * is not.
- * Output has to have room for (length+1) chars, including the trailing NUL byte.
-*/
+ * is not. Output has to have room for (length+1) chars, including the trailing NUL byte.
+ * @param output the output encoded string
+ * @param input the unsafe input string
+ * @param length the length of the input string
+ * @return
+ */
 size_t utf8_to_latin9(char *const output, const char *const input, const size_t length)
 {
     unsigned char             *out = (unsigned char *)output;
@@ -178,6 +183,10 @@ size_t utf8_to_latin9(char *const output, const char *const input, const size_t 
     return (size_t)(out - (unsigned char *)output);
 }
 
+/**
+ * The function to be used in general to notify fatal errors and exiting the program
+ * @param msg the message to be displayed while exiting.
+ */
 void notify_error(const char* msg) {
     printf(ANSI_COLOR_RED "ERROR: %s\n" ANSI_COLOR_RESET, msg);
     exit(EXIT_FAILURE);
