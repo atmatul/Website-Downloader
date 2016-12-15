@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include "config.h"
 
-#define MAX_THREAD_NUM 16
+#define MAX_THREAD_NUM 32
 
 struct sthread_data {
     int id;
