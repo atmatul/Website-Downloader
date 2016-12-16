@@ -27,15 +27,15 @@ typedef struct {
 /**
  * The handler function to link all the configuration variables
  * available in the .ini configuration file
- * @param user
+ * @param config
  * @param section
  * @param name
  * @param value
  * @return
  */
-static int handler(void *user, const char *section, const char *name,
+static int handler(void *config, const char *section, const char *name,
                    const char *value) {
-    configuration *pconfig = (configuration *) user;
+    configuration *pconfig = (configuration *) config;
 
 #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("storage", "save_location")) {
