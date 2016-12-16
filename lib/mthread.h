@@ -7,15 +7,15 @@
 
 /* The data structure to be passed on to each thread */
 struct sthread_data {
-    int id;
-    char* url;
-    char* pagelink;
-    MYSQL* connection;
-    int *db_singleton;
-    pthread_mutex_t* lock;
-    pthread_cond_t* condition;
-    pthread_t *thread_pool;
-    struct timeval *start;
+    int id;                         /* id of the page url in the database */
+    char* url;                      /* url corresponding to the page */
+    char* pagelink;                 /* url corresponding to the page - immutable */
+    MYSQL* connection;              /* MySQL database connection parameter */
+    int *db_singleton;              /* the atomic variable corresponding to the database connection singleton */
+    pthread_mutex_t* lock;          /* mutex variable for thread synchronization */
+    pthread_cond_t* condition;      /* conditional for thread synchronization */
+    pthread_t *thread_pool;         /* reference to the main thread pool */
+    struct timeval *start;          /* starting time of the thread */
 };
 
 typedef struct sthread_data thread_data;

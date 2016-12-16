@@ -7,21 +7,21 @@
 
 /* The configuration structure to store all the configuration variables */
 typedef struct {
-    const char* root_save_path;
-    const char* invalid_save_path;
-    char *host;
-    char *protocol;
-    char *page;
-    int begin_at;
-    char *cert_location;
-    int timeout;
+    const char* root_save_path;         /* the path in the hard-drive to save the downloaded pages */
+    const char* invalid_save_path;      /* the path in the hard-drive to save files with unresolved urls */
+    char *host;                         /* hostname of the server to be fetched from */
+    char *protocol;                     /* protocol of the server to be fetched from */
+    char *page;                         /* page from where the download starts */
+    int begin_at;                       /* beginning id of the page in database. if starting fresh begin_at = 1 */
+    char *cert_location;                /* location of the ssl certificates for https */
+    int timeout;                        /* http read timeout for the select loop */
 
-    char *root_path;
+    char *root_path;                    /* root path to serve the files in the search engine */
 
-    char *db_host;
-    char *db_username;
-    char *db_password;
-    char *db_name;
+    char *db_host;                      /* hostname for the database connection */
+    char *db_username;                  /* username for the database connection */
+    char *db_password;                  /* password for the database connection */
+    char *db_name;                      /* name of the database */
 } configuration;
 
 /**
