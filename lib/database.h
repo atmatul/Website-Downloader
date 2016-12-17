@@ -40,11 +40,12 @@ int db_reset(MYSQL *connection) {
             "link varchar(1023) NOT NULL,"
             "title varchar(1023),"
             "occurence int DEFAULT 1,"
+            "status int DEFAULT 0,"
             "tags text CHARACTER SET 'latin1',"
             "PRIMARY KEY (id),"
             "UNIQUE (link),"
             "FULLTEXT (tags)"
-            ");")) {
+            ") ENGINE=MyISAM;")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
     }
@@ -58,7 +59,7 @@ int db_reset(MYSQL *connection) {
             "FOREIGN KEY (from_id) REFERENCES Links(id),"
             "FOREIGN KEY (to_id) REFERENCES Links(id),"
             "UNIQUE (from_id, to_id)"
-            ");")) {
+            ") ENGINE=MyISAM;")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
     }
@@ -69,7 +70,7 @@ int db_reset(MYSQL *connection) {
             "occurence int DEFAULT 1,"
             "PRIMARY KEY (id),"
             "UNIQUE (link)"
-            ");")) {
+            ") ENGINE=MyISAM;")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
     }
@@ -249,15 +250,37 @@ int db_insert_external_link(MYSQL *connection, const char *url) {
 }
 
 /**
- * Fetch the id of the url to be downloaded next
+ * Set status of current item
  * @param connection the MySQL connection parameter
  * @param id the id of the current url being downloaded
+ * @param status to set (0=unprocessed, 1=processed)
+ * @return
+ */
+int db_set_status( MYSQL *connection, int id, int status )
+{
+	char query[ BUFSIZ ];
+
+	sprintf( query, "UPDATE Links "
+				"SET status='%d' "
+				"WHERE id='%d';",
+				status, id );
+
+	if( mysql_query( connection, query ) )
+		db_debug( connection );
+
+	return EXIT_SUCCESS;
+}
+
+/**
+ * Fetch the id of the url to be downloaded next
+ * @param connection the MySQL connection parameter
+ * @param id the id of the current url being downloaded (probably not needed anymore)
  * @return
  */
 int db_fetch_next_id(MYSQL *connection, int id) {
     char query[BUFSIZ];
 
-    sprintf(query, "SELECT id FROM Links WHERE id > '%d' ORDER BY id ASC LIMIT 1;", id);
+    sprintf(query, "SELECT id FROM Links WHERE status = '0' ORDER BY id ASC LIMIT 1;");
 
     if (mysql_query(connection, query)) {
         db_debug(connection);
@@ -270,6 +293,7 @@ int db_fetch_next_id(MYSQL *connection, int id) {
         MYSQL_ROW link_row = mysql_fetch_row(result);
         if (link_row[0]) {
             new_id = atoi(link_row[0]);
+            db_set_status(connection, new_id, 1);
         }
     }
     if (result) mysql_free_result(result);
