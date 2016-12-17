@@ -305,18 +305,11 @@ void *fetch_resource_url(void *data) {
         if (!is_html(header)) {
             char *title = extract_title(content);
             if (strlen(title) > 0) {
-                wait_on_condition(tdata->thread_pool, tdata->db_singleton, tdata->condition, tdata->lock);
                 db_insert_title(tdata->connection, title, tdata->id);
-                free_resource(tdata->db_singleton, tdata->condition, tdata->lock);
                 free(title);
             }
-            wait_on_condition(tdata->thread_pool, tdata->db_singleton, tdata->condition, tdata->lock);
             link_extractor(tdata->connection, tdata->id, tdata->pagelink, content);
-            free_resource(tdata->db_singleton, tdata->condition, tdata->lock);
-
-            wait_on_condition(tdata->thread_pool, tdata->db_singleton, tdata->condition, tdata->lock);
             tags_extractor(tdata->connection, tdata->id, content);
-            free_resource(tdata->db_singleton, tdata->condition, tdata->lock);
 //                description_extractor(connection, id, content);
         }
         if (!file_save(config, tdata->pagelink, header, content, content_size)) {
