@@ -1,6 +1,6 @@
-#include "includes.h"
-#include "extractor.h"
-#include "downloader.h"
+#include "lib/includes.h"
+#include "lib/extractor.h"
+#include "lib/downloader.h"
 
 #include <unistd.h>
 #include <pthread.h>
