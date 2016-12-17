@@ -37,8 +37,8 @@ int db_reset(MYSQL *connection) {
 
     if (mysql_query(connection, "CREATE TABLE Links ("
             "id int NOT NULL AUTO_INCREMENT,"
-            "link varchar(1023) NOT NULL,"
-            "title varchar(1023),"
+            "link varchar(1000) NOT NULL,"
+            "title varchar(1000),"
             "occurence int DEFAULT 1,"
             "status int DEFAULT 0,"
             "tags text CHARACTER SET 'latin1',"
@@ -66,7 +66,7 @@ int db_reset(MYSQL *connection) {
 
     if (mysql_query(connection, "CREATE TABLE Ext_Links ("
             "id int NOT NULL AUTO_INCREMENT,"
-            "link varchar(1023) NOT NULL,"
+            "link varchar(1000) NOT NULL,"
             "occurence int DEFAULT 1,"
             "PRIMARY KEY (id),"
             "UNIQUE (link)"
