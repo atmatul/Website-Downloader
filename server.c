@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     while (1) {
         // initialize "select" observers and set timeout
         timeout.tv_sec = 0;
-        timeout.tv_usec = 100000;
+        timeout.tv_usec = 10000;
         int stdin_id = fileno(stdin);
         FD_ZERO(&observers);
         FD_SET(stdin_id, &observers);

@@ -11,17 +11,10 @@ foreach(FLAG ${LIBMYSQLCLIENT_CFLAGS_OTHER})
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")
 endforeach()
 
-# OpenSSL
-find_package(PkgConfig REQUIRED)
-pkg_search_module(OPENSSL REQUIRED openssl)
-
-if( OPENSSL_FOUND )
-    include_directories(${OPENSSL_INCLUDE_DIRS})
-    message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
-endif()
-
-# Threads
-find_package (Threads)
+FIND_PACKAGE(OPENSSL)
+FIND_PACKAGE(Threads)
+include_directories(${OPENSSL_INCLUDE_DIR})
+link_directories(${LIBMYSQLCLIENT_LIBRARY_DIRS})
 
 set(SOURCE_FILES lib/slre/slre.h
         lib/slre/slre.c

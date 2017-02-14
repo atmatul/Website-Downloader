@@ -1,10 +1,10 @@
 # Website Downloader
 
 This project contains two modules, a `fetcher` to download the entire content of a specified website and a `server` to provide search results based on the keywords extracted from the downloaded website.
- 
+
 ## Requirements
 This project uses a `cmake` based build system. Hence to build it in the first place `cmake >=3.6`  is required. Additionally it also depends on several external libraries which are necessary for the project to work. The required libraries are as follows:
- 
+
 * `openssl` - To fetch websites from `https` hosts
 * `mysql` - To store fetched and processed links
 * `threads` - For multi-threading during website download
@@ -27,7 +27,7 @@ To build this project execute:
 cmake CMakelists.txt
 make
 ```
- 
+
 ## Run
 ### Setup MySQL database
 ```bash
@@ -57,9 +57,9 @@ The configuration can be provided in `config.ini`. Different config files can be
 * `timeout`: timeout in seconds
 
 #### database
-* `host`: 
-* `username`:
-* `password`:
+* `host`: host of the database e.g. localhost
+* `username`: username for the database connection
+* `password`: password  for the database connection
 * `name`: name of the database
 
 #### search_engine
@@ -74,3 +74,4 @@ Both the executables can be called as follows:
 
 ## About
 This repository was developed by Kunal Pal and Thorsten Born as part of their Network Programming lab project.
+

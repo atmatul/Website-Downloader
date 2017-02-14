@@ -45,7 +45,7 @@ int db_reset(MYSQL *connection) {
             "PRIMARY KEY (id),"
             "UNIQUE (link),"
             "FULLTEXT (tags)"
-            ") ENGINE=MyISAM;")) {
+            ");")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
     }
@@ -59,7 +59,7 @@ int db_reset(MYSQL *connection) {
             "FOREIGN KEY (from_id) REFERENCES Links(id),"
             "FOREIGN KEY (to_id) REFERENCES Links(id),"
             "UNIQUE (from_id, to_id)"
-            ") ENGINE=MyISAM;")) {
+            ");")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
     }
@@ -70,7 +70,7 @@ int db_reset(MYSQL *connection) {
             "occurence int DEFAULT 1,"
             "PRIMARY KEY (id),"
             "UNIQUE (link)"
-            ") ENGINE=MyISAM;")) {
+            ");")) {
         db_debug(connection);
         notify_error("Unable to re-create table.\n");
     }
