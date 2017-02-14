@@ -2,7 +2,14 @@
 
 This project contains two modules, a `fetcher` to download the entire content of a specified website and a `server` to provide search results based on the keywords extracted from the downloaded website.
 
+```
+![Search Engine](https://raw.githubusercontent.com/kunalpal/Website-Downloader/master/report/search_sc.png)
+```
+
+
+
 ## Requirements
+
 This project uses a `cmake` based build system. Hence to build it in the first place `cmake >=3.6`  is required. Additionally it also depends on several external libraries which are necessary for the project to work. The required libraries are as follows:
 
 * `openssl` - To fetch websites from `https` hosts
