@@ -7,8 +7,8 @@
 
 /* The configuration structure to store all the configuration variables */
 typedef struct {
-    const char* root_save_path;         /* the path in the hard-drive to save the downloaded pages */
-    const char* invalid_save_path;      /* the path in the hard-drive to save files with unresolved urls */
+    const char *root_save_path;         /* the path in the hard-drive to save the downloaded pages */
+    const char *invalid_save_path;      /* the path in the hard-drive to save files with unresolved urls */
     char *host;                         /* hostname of the server to be fetched from */
     char *protocol;                     /* protocol of the server to be fetched from */
     char *page;                         /* page from where the download starts */

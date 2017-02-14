@@ -39,7 +39,9 @@ int slre_match(const char *regexp, const char *buf, int buf_len,
                struct slre_cap *caps, int num_caps, int flags);
 
 /* Possible flags for slre_match() */
-enum { SLRE_IGNORE_CASE = 1 };
+enum {
+    SLRE_IGNORE_CASE = 1
+};
 
 
 /* slre_match() failure codes */

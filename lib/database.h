@@ -256,19 +256,18 @@ int db_insert_external_link(MYSQL *connection, const char *url) {
  * @param status to set (0=unprocessed, 1=processed)
  * @return
  */
-int db_set_status( MYSQL *connection, int id, int status )
-{
-	char query[ BUFSIZ ];
+int db_set_status(MYSQL *connection, int id, int status) {
+    char query[BUFSIZ];
 
-	sprintf( query, "UPDATE Links "
-				"SET status='%d' "
-				"WHERE id='%d';",
-				status, id );
+    sprintf(query, "UPDATE Links "
+            "SET status='%d' "
+            "WHERE id='%d';",
+            status, id);
 
-	if( mysql_query( connection, query ) )
-		db_debug( connection );
+    if (mysql_query(connection, query))
+        db_debug(connection);
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 /**

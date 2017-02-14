@@ -224,7 +224,7 @@ int read_file(char *path, char **content) {
         fseek(input_file, 0, SEEK_END);
         input_file_size = ftell(input_file);
         rewind(input_file);
-        *content = malloc((input_file_size+1) * (sizeof(char)));
+        *content = malloc((input_file_size + 1) * (sizeof(char)));
         fread(*content, sizeof(char), input_file_size, input_file);
         (*content)[input_file_size] = '\0';
         fclose(input_file);
@@ -272,8 +272,8 @@ long prepare_response_html(char *search, char **file_content) {
         char full_link[BUFSIZ];
         sprintf(full_link, "http://%s%s", config.host, row[2]);
         sprintf(*file_content, "%s<div class=\"result-container\">"
-                               "<h3><a class=\"title\" target=\"_blank\" href=\"%s\"><b>%s</b></a></br>"
-                               "<a class=\"link\" target=\"_blank\" href=\"%s\">%s</a></h3>",
+                "<h3><a class=\"title\" target=\"_blank\" href=\"%s\"><b>%s</b></a></br>"
+                "<a class=\"link\" target=\"_blank\" href=\"%s\">%s</a></h3>",
                 *file_content, full_link, row[1], full_link, row[2]);
         sprintf(*file_content, "%s<p>%s</p>", *file_content, row[3]);
     }
